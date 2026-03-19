@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us | Envio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styles */
+        body {
+            cursor: url('ani_cursor.ani'), auto;
+        }
+        a, button, .cursor-pointer {
+            cursor: url('cursor.cur'), pointer;
+        }
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(to right, #6366f1, #a855f7, #ec4899);
+            width: 0%;
+            z-index: 100;
+            transition: width 0.1s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-50 antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Scroll Progress Bar -->
+    <div id="scroll-progress"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center gap-2 cursor-pointer">
+                    <img src="logo white.png" alt="Envio Logo" class="h-14 w-14 object-contain" />
+                    <span class="text-[10px] font-light tracking-widest">STYLE | VISION |LEGACY<span class="text-indigo-100 font-bold">.</span></span>
+                </a>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="index.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</a>
+                    <a href="about.html" class="text-sm font-medium text-white transition-colors">About Us</a>
+                    <a href="index.html#store" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Store</a>
+                    
+                    <div class="flex items-center gap-3 ml-2">
+                        <a href="index.html#store" class="bg-white/10 hover:bg-white/20 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border border-white/5 hover:border-white/20 text-center">
+                            Shop Now
+                        </a>
+                        <a href="account.html" class="text-slate-300 hover:text-white transition-colors ml-2" title="My Account">
+                            <i class="ph ph-user text-2xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center gap-4">
+                    <a href="account.html" class="text-slate-300 hover:text-white transition-colors">
+                        <i class="ph ph-user text-2xl"></i>
+                    </a>
+                    <button id="mobile-menu-btn" class="text-slate-300 hover:text-white focus:outline-none">
+                        <i class="ph ph-list text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden glass-nav border-t border-white/5 absolute w-full">
+            <div class="px-2 pt-2 pb-6 space-y-1 sm:px-3 flex flex-col items-center">
+                <a href="index.html" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white">Home</a>
+                <a href="about.html" class="block px-3 py-2 text-base font-medium text-white">About Us</a>
+                <a href="index.html#store" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white">Store</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob"></div>
+        <div class="absolute top-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob animation-delay-2000"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 animate-fade-in-up">
+                Our Story, <br class="hidden md:block" />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                    Your Style.
+                </span>
+            </h1>
+            <p class="mt-4 text-lg md:text-xl text-slate-400 max-w-2xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s;">
+                Founded in 2024, Envio was born from a simple idea: fashion should be effortless, sustainable, and undeniably you.
+            </p>
+        </div>
+    </section>
+
+    <!-- Content Section -->
+    <section class="py-20 bg-slate-800/50 border-y border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                <div class="reveal">
+                    <div class="relative rounded-2xl overflow-hidden glass-card p-2">
+                        <img src="bkgrnd.png" alt="Team working" class="rounded-xl w-full h-auto object-cover" />
+                    </div>
+                </div>
+                <div class="reveal" style="transition-delay: 0.2s;">
+                    <h2 class="text-3xl font-bold mb-6">Who are we</h2>
+                    <p class="text-slate-400 mb-6 leading-relaxed">
+                        We believe that what you wear is an extension of who you are. That's why we meticulously source materials that are kind to the planet and design cuts that flatter every form.
+                    </p>
+                    <p class="text-slate-400 mb-8 leading-relaxed">
+                        Our journey began in a small studio with a single sewing machine and a dream to disrupt the fast fashion industry. Today, we are a community of dreamers, creators, and style enthusiasts.
+                    </p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-xl font-bold text-indigo-400 mb-2">100%</h4>
+                            <p class="text-sm text-slate-500">Sustainable Materials</p>
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-bold text-purple-400 mb-2">50k+</h4>
+                            <p class="text-sm text-slate-500">Happy Customers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Privacy & Terms Section -->
+    <section id="privacy-terms" class="py-20 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto reveal">
+                <h2 class="text-3xl font-bold mb-8 text-center">Legal & Privacy</h2>
+                
+                <div class="space-y-12">
+                    <div>
+                        <h3 class="text-xl font-bold text-indigo-400 mb-4">Terms Of Service</h3>
+                        <p class="text-slate-400 leading-relaxed mb-4">
+                            1. <strong>Products & Availability:</strong> All items are subject to availability. We reserve the right to limit quantities, discontinue products, or refuse service at our discretion. Product images and descriptions are provided as accurately as possible; however, slight variations in color, fabric, or fit may occur.<br><br>
+
+                            2. <strong>Pricing & Payments:</strong> Prices are subject to change without prior notice. We reserve the right to correct pricing errors. Full payment must be received before orders are processed or shipped. We may cancel orders suspected of fraud or unauthorized activity.<br><br>
+
+                            3. <strong>Orders & Acceptance:</strong> Order confirmation does not guarantee acceptance. We reserve the right to cancel any order due to stock limitations, pricing errors, or other valid reasons. Approved refunds will be processed via the original payment method.<br><br>
+
+                            4. <strong>Shipping & Delivery:</strong> Delivery times are estimates and may vary due to external factors. We are not responsible for delays beyond our control. Risk of loss transfers to the customer upon delivery confirmation.<br><br>
+
+                            5. <strong>Returns & Exchanges:</strong> Returns or exchanges must be requested within the specified return period with proof of purchase. Items must be unworn, unwashed, undamaged, and returned with original tags. Sale, clearance, undergarments, accessories, and customized items may be non-refundable unless defective.<br><br>
+
+                            6. <strong>Cancellations:</strong> Orders may only be canceled prior to dispatch. Once shipped, cancellations are not permitted and must follow the return policy.<br><br>
+
+                            7. <strong>Intellectual Property:</strong> All logos, designs, images, and branding are the property of the store and may not be used without written permission.<br><br>
+
+                            8. <strong>Limitation of Liability:</strong> We are not liable for damages resulting from improper use, care, or alteration of our products.<br><br>
+
+                            9. <strong>Privacy:</strong> Customer information is used solely for order processing and service improvement and will not be sold to third parties, except where required for payment processing or legal compliance.<br><br>
+
+                            10. <strong>Amendments:</strong> We reserve the right to update these Terms of Service at any time. Continued use of our services constitutes acceptance of any changes.                            
+                        </p>
+                        <p class="text-slate-400 leading-relaxed">
+                            By accessing our website, you agree to be bound by these terms of service. All content on this site is the property of Enivo Apparel.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold text-purple-400 mb-4">Privacy Policy</h3>
+                        <p class="text-slate-400 leading-relaxed mb-4">
+                            1. <strong>Information We Collect:</strong> We may collect personal information including your name, phone number, email address, billing and shipping address, and payment details when you place an order, contact us, or subscribe to our services.<br><br>
+
+                            2. <strong>How We Use Your Information:</strong> Your information is used to process orders, provide customer support, improve our services, communicate updates or promotions, and ensure secure transactions.<br><br>
+
+                            3. <strong>Payment Information:</strong> Payment details are processed securely through authorized payment providers. We do not store full credit/debit card information on our servers.<br><br>
+
+                            4. <strong>Sharing of Information:</strong> We do not sell or rent your personal information. Information may be shared only with trusted third parties such as payment processors, delivery partners, or when required by law.<br><br>
+
+                            5. <strong>Data Protection:</strong> We implement reasonable security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no online transmission is 100% secure.<br><br>
+
+                            6. <strong>Cookies & Tracking:</strong> Our website may use cookies and similar technologies to enhance user experience, analyze traffic, and improve website functionality. You may adjust your browser settings to disable cookies if preferred.<br><br>
+
+                            7. <strong>Your Rights:</strong> You may request access, correction, or deletion of your personal information by contacting us. We will respond within a reasonable timeframe.<br><br>
+
+                            8. <strong>Retention of Data:</strong> Personal information is retained only as long as necessary to fulfill orders, comply with legal obligations, or resolve disputes.<br><br>
+
+                            9. <strong>Third-Party Links:</strong> Our website may contain links to external websites. We are not responsible for the privacy practices of those third-party sites.<br><br>
+                        </p>
+                        <p class="text-slate-400 leading-relaxed">
+                            We reserve the right to modify prices and refuse service to anyone for any reason at any time. Returns are accepted within 30 days of purchase for unworn items.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="pt-20 pb-10 border-t border-white/5 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-12">
+                <div class="flex items-center gap-2 mb-6 md:mb-0">
+                    <img src="logo white.png" alt="Enivo Logo" class="h-20 w-20 object-contain" />
+                    <span class="text-l font-light tracking-tight">Wear The Evolution<span class="text-indigo-500 font-bold">.</span></span>
+                </div>
+                <div class="flex space-x-6 text-slate-400">
+                    <a href="#" class="hover:text-white transition-colors"><i class="ph-fill ph-youtube-logo text-2xl"></i></a>
+                    <a href="https://www.instagram.com/enivo.clothings" class="hover:text-white transition-colors"><i class="ph-fill ph-instagram-logo text-2xl"></i></a>
+                    <a href="#" class="hover:text-white transition-colors"><i class="ph-fill ph-tiktok-logo text-2xl"></i></a>
+                </div>
+            </div>
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+                <p>&copy; 2026 Enivo Apparel. All rights reserved.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#privacy-terms" class="hover:text-slate-300">Privacy Policy</a>
+                    <a href="#privacy-terms" class="hover:text-slate-300">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const progressBar = document.getElementById('scroll-progress');
+            window.addEventListener('scroll', () => {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                progressBar.style.width = scrolled + '%';
+            });
+
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const revealElements = document.querySelectorAll('.reveal');
+            const revealOnScroll = () => {
+                const windowHeight = window.innerHeight;
+                const elementVisible = 100;
+                revealElements.forEach((element) => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    if (elementTop < windowHeight - elementVisible) {
+                        element.classList.add('active');
+                    }
+                });
+            };
+            revealOnScroll();
+            window.addEventListener('scroll', revealOnScroll);
+        });
+    </script>
+</body>
+</html>

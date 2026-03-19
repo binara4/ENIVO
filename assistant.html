@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enivo Assistant | AI Chat</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- stlite CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.55.1/build/stlite.css" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: { 'fade-in-up': 'fadeInUp 0.8s ease-out forwards' },
+                    keyframes: { fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { cursor: url('ani_cursor.ani'), auto; }
+        a, button, .cursor-pointer { cursor: url('cursor.cur'), pointer; }
+        .glass-nav { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-50 antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center gap-2 cursor-pointer">
+                    <img src="logo white.png" alt="Envio Logo" class="h-8 w-8 object-contain" />
+                    <span class="text-xl font-light tracking-tight">STYLE | VISION |LEGACY<span class="text-indigo-100 font-bold">.</span></span>
+                </a>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="index.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</a>
+                    <a href="about.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">About Us</a>
+                    <a href="store.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Store</a>
+                    <a href="assistant.html" class="text-sm font-medium text-white transition-colors flex items-center gap-1">
+                        <i class="ph-fill ph-robot text-lg text-indigo-400"></i> Assistant
+                    </a>
+                    <a href="account.html" class="text-slate-300 hover:text-white transition-colors ml-2" title="My Account">
+                        <i class="ph ph-user text-2xl"></i>
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center gap-4">
+                    <a href="index.html" class="text-slate-300 hover:text-white"><i class="ph ph-house text-2xl"></i></a>
+                    <a href="account.html" class="text-slate-300 hover:text-white transition-colors">
+                        <i class="ph ph-user text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Assistant Section -->
+    <section class="pt-32 pb-20 min-h-screen flex flex-col items-center relative overflow-hidden">
+        <!-- Background Effects -->
+        <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob"></div>
+        <div class="absolute top-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob animation-delay-2000"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full z-10">
+            <div class="text-center mb-10 animate-fade-in-up">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Envio Assistant</h1>
+                <p class="text-slate-400">Chat with our AI to find the perfect style, check inventory, and more.</p>
+            </div>
+            
+            <!-- stlite App Container -->
+            <div class="glass-card rounded-2xl p-2 sm:p-4 border border-white/10 shadow-2xl animate-fade-in-up" style="min-height: 700px; animation-delay: 0.2s;">
+                <div id="stlite-root" class="w-full h-full rounded-xl overflow-hidden" style="min-height: 680px;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- stlite JS & Mounting Configuration -->
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.55.1/build/stlite.js"></script>
+    <script>
+        stlite.mount(
+            {
+                requirements: ["pandas", "requests"], 
+                entrypoint: "app.py",
+                files: {
+                    "products.csv": "name,category,price,availability\nEssential Organic Tee,Shirts,LKR 35,In Stock\nHeavyweight Hoodie,Sweaters,LKR 85,In Stock\nUtility Bomber Jacket,Jackets,LKR 140,In Stock\nRelaxed Fit Trousers,Pants,LKR 95,Out of Stock\nSignature Essentials Bundle,Bundles,LKR 150,In Stock",
+                    "app.py": `import streamlit as st
+import pandas as pd
+import requests
+import os
+
+st.set_page_config(page_title="ENIVO ASSISTANT", layout="wide")
+st.title("Welcome to the Enivo")
+
+GROQ_API_KEY = "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"
+
+@st.cache_data
+def load_products():
+    return pd.read_csv("products.csv")
+
+try:
+    products_df = load_products()
+except Exception as e:
+    st.error(f"Error loading products: {e}")
+    products_df = pd.DataFrame()
+
+def search_products(query, df):
+    if df.empty: return df
+    query = query.lower()
+    results = df[df.apply(lambda row: query in row.to_string().lower(), axis=1)]
+    return results
+
+def generate_response(user_query, memory, products_context):
+    system_prompt = """You are an ecommerce assistant in a clothing shop. Answer ONLY using the provided product data. If a product is not found, say so politely. Contact Details(phone = +94 707 606 555, email = enivo.clothing@gmail.com, Address/shop=not yet have one looking foward to open but delivering to any where in sri lanka.) Do not take payment or personal information. Always say "Please visit our website to complete your purchase!" at the end of your response."""
+    messages = [{"role": "system", "content": system_prompt}]
+    for msg in memory: messages.append(msg)
+    if not products_context.empty:
+        messages.append({"role": "system", "content": f"Product data:\\n{products_context.to_string(index=False)}"})
+    messages.append({"role": "user", "content": user_query})
+    
+    try:
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+        payload = {"model": "llama-3.1-8b-instant", "messages": messages, "temperature": 0.3}
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code == 200: return response.json()["choices"][0]["message"]["content"]
+        else: return f"API Error ({response.status_code}): {response.text}"
+    except Exception as e: return f"Error: {e}"
+
+if "memory" not in st.session_state: st.session_state.memory = []
+
+for msg in st.session_state.memory:
+    with st.chat_message(msg["role"]): st.write(msg["content"])
+
+user_input = st.chat_input("Ask about products, price, availability...")
+
+if user_input:
+    st.session_state.memory.append({"role": "user", "content": user_input})
+    with st.chat_message("user"): st.write(user_input)
+    matched_products = search_products(user_input, products_df)
+    with st.chat_message("assistant"):
+        with st.spinner("Searching..."):
+            bot_reply = generate_response(user_input, st.session_state.memory[:-1], matched_products)
+            st.write(bot_reply)
+            st.session_state.memory.append({"role": "assistant", "content": bot_reply})
+`
+                },
+                streamlitConfig: {
+                    "theme.base": "dark",
+                    "theme.primaryColor": "#6366f1",
+                    "theme.backgroundColor": "#1e293b",
+                    "theme.secondaryBackgroundColor": "#0f172a"
+                }
+            },
+            document.getElementById("stlite-root")
+        );
+    </script>
+</body>
+</html>

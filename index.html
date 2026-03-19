@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enivo | Premium Modern Clothing</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styles for things Tailwind doesn't cover natively out-of-the-box easily */
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Hide scrollbar but keep functionality */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Scroll Reveal Utility Classes */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Progress Bar */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(to right, #6366f1, #a855f7, #ec4899);
+            width: 0%;
+            z-index: 100;
+            transition: width 0.1s ease;
+        }
+    </style>
+</head>
+<!-- CHANGE MAIN BACKGROUND COLOR HERE: Modify the 'bg-slate-900' class in the body tag below to change the overall background color -->
+<body class="bg-slate-900 text-slate-50 antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Scroll Progress Bar -->
+    <div id="scroll-progress"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- CHANGE LOGO HERE: Modify the img src and text (<span> tag) to update your brand logo -->
+                <div class="flex items-center gap-2 cursor-pointer">
+                    <img src="logo white.png" alt="Enivo Logo" class="h-14 w-14 object-contain" />
+                    <span class="text-[10px] font-light tracking-widest">STYLE | VISION | LEGACY<span class="text-indigo-100 font-bold">.</span></span>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="#home" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</a>
+                    <a href="about.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">About Us</a>
+                    <a href="store.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Store</a>
+                    
+                    <div class="flex items-center gap-3 ml-2">
+                        <a href="store.html" class="bg-white/10 hover:bg-white/20 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 border border-white/5 hover:border-white/20 text-center">
+                            Shop Now
+                        </a>
+                        <a href="assistant.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 shadow-[0_0_15px_-3px_rgba(79,70,229,0.4)] hover:shadow-[0_0_20px_-3px_rgba(79,70,229,0.6)] hover:-translate-y-0.5 text-center flex items-center gap-2">
+                            Get Started <i class="ph-bold ph-arrow-right"></i>
+                        </a>
+                        
+                        <!-- Cart Button (Desktop) -->
+                        <button id="cart-btn-desktop" class="relative text-slate-300 hover:text-white transition-colors ml-2">
+                            <i class="ph ph-shopping-cart text-2xl"></i>
+                            <span class="cart-count absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                        </button>
+                        <a href="assistant.html" class="text-slate-300 hover:text-white transition-colors ml-2" title="Enivo Assistant">
+                            <i class="ph ph-robot text-2xl"></i>
+                        </a>
+                        <a href="account.html" class="text-slate-300 hover:text-white transition-colors ml-2" title="My Account">
+                            <i class="ph ph-user text-2xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center gap-4">
+                    <button id="cart-btn-mobile" class="relative text-slate-300 hover:text-white transition-colors">
+                        <i class="ph ph-shopping-cart text-2xl"></i>
+                        <span class="cart-count absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    </button>
+                    <a href="assistant.html" class="text-slate-300 hover:text-white transition-colors">
+                        <i class="ph ph-robot text-2xl"></i>
+                    </a>
+                    <a href="account.html" class="text-slate-300 hover:text-white transition-colors">
+                        <i class="ph ph-user text-2xl"></i>
+                    </a>
+                    <button id="mobile-menu-btn" class="text-slate-300 hover:text-white focus:outline-none">
+                        <i class="ph ph-list text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden glass-nav border-t border-white/5 absolute w-full">
+            <div class="px-2 pt-2 pb-6 space-y-1 sm:px-3 flex flex-col items-center">
+                <a href="#home" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white">Home</a>
+                <a href="about.html" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white">About Us</a>
+                <a href="store.html" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white">Store</a>
+                
+                <div class="w-full flex flex-col gap-3 px-4 pt-4 mt-2 border-t border-white/5">
+                    <a href="store.html" class="w-full text-center bg-white/10 hover:bg-white/20 text-white px-5 py-2.5 rounded-full text-base font-medium transition-all duration-300 border border-white/5">
+                        Shop Now
+                    </a>
+                    <a href="assistant.html" class="w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-full text-base font-medium transition-all duration-300 flex items-center justify-center gap-2">
+                        Get Started <i class="ph-bold ph-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden min-h-screen flex items-center">
+        <!-- Background Effects -->
+        <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob"></div>
+        <div class="absolute top-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob animation-delay-2000"></div>
+        <div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob animation-delay-4000"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-card text-xs font-medium text-indigo-300 mb-8 animate-fade-in-up">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                </span>
+                Enivo Summer Collection is live
+            </div>
+            
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 animate-fade-in-up" style="animation-delay: 0.1s;">
+                Redefine your style with <br class="hidden md:block" />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
+                    Enivo Apparel
+                </span>
+            </h1>
+            
+            <p class="mt-4 text-lg md:text-xl text-slate-400 max-w-2xl mx-auto animate-fade-in-up mb-10" style="animation-delay: 0.2s;">
+                Elevate your everyday wardrobe with our sustainably sourced, premium collections. Experience the perfect blend of modern aesthetics and unparalleled comfort.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in-up" style="animation-delay: 0.3s;">
+                <a href="store.html" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-full font-medium transition-all duration-300 shadow-[0_0_30px_-5px_rgba(79,70,229,0.5)] hover:shadow-[0_0_40px_-5px_rgba(79,70,229,0.7)] hover:-translate-y-1">
+                    Shop Collection
+                </a>
+                <a href="login.html" id="hero-login-btn" class="glass-card hover:bg-white/10 text-white px-8 py-4 rounded-full font-medium transition-all duration-300 flex items-center justify-center gap-2">
+                    <i class="ph-fill ph-sign-in text-xl"></i>
+                    Log In
+                </a>
+            </div>
+            
+            <!-- Fashion Imagery with Auto-Crop -->
+            <div class="mt-20 relative mx-auto max-w-5xl animate-fade-in-up" style="animation-delay: 0.5s;">
+                <div class="rounded-2xl glass-card p-2 shadow-2xl ring-1 ring-white/10">
+                    <div class="relative w-full aspect-video overflow-hidden rounded-xl bg-slate-800">
+                        <img src="bkgrnd.png" alt="Premium Clothing Collection" class="absolute inset-0 w-full h-full object-cover object-center opacity-80 mix-blend-lighten" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Choose Us Section -->
+    <section class="py-24 relative z-10 border-t border-white/5 bg-slate-900/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Why Choose Enivo?</h2>
+                <p class="text-slate-400">We don't just sell clothes; we curate a lifestyle. Here is what sets us apart.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass-card p-8 rounded-2xl hover:bg-white/5 transition-all duration-300 reveal group hover:-translate-y-2">
+                    <div class="w-14 h-14 bg-indigo-500/10 group-hover:bg-indigo-500/20 rounded-xl flex items-center justify-center text-indigo-400 transition-colors mb-6">
+                        <i class="ph-fill ph-leaf text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-100">Sustainably Sourced</h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        Crafted with 100% organic cotton and recycled materials. We prioritize the planet without compromising on quality.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass-card p-8 rounded-2xl hover:bg-white/5 transition-all duration-300 reveal group hover:-translate-y-2" style="transition-delay: 0.1s;">
+                    <div class="w-14 h-14 bg-purple-500/10 group-hover:bg-purple-500/20 rounded-xl flex items-center justify-center text-purple-400 transition-colors mb-6">
+                        <i class="ph-fill ph-ruler text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-100">Tailored for You</h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        Our modern cuts are designed to flatter every body type, ensuring you look as good as you feel.
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass-card p-8 rounded-2xl hover:bg-white/5 transition-all duration-300 reveal group hover:-translate-y-2" style="transition-delay: 0.2s;">
+                    <div class="w-14 h-14 bg-pink-500/10 group-hover:bg-pink-500/20 rounded-xl flex items-center justify-center text-pink-400 transition-colors mb-6">
+                        <i class="ph-fill ph-truck text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-100">Express Delivery</h3>
+                    <p class="text-slate-400 leading-relaxed">
+                        From our warehouse to your wardrobe in record time. Free shipping on all orders over $100.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-full sm:w-96 bg-slate-900/95 backdrop-blur-xl border-l border-white/10 transform translate-x-full transition-transform duration-300 z-[60] shadow-2xl">
+        <div class="flex flex-col h-full">
+            <div class="flex justify-between items-center p-6 border-b border-white/5">
+                <h2 class="text-xl font-bold">Your Cart</h2>
+                <button id="close-cart" class="text-slate-400 hover:text-white">
+                    <i class="ph ph-x text-2xl"></i>
+                </button>
+            </div>
+            <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <!-- Cart items will be injected here -->
+                <p class="text-slate-500 text-center mt-10">Your cart is empty.</p>
+            </div>
+            <div class="p-6 border-t border-white/5 bg-slate-900/50">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-slate-400">Total</span>
+                    <span id="cart-total" class="text-xl font-bold text-white">LKR 0.00</span>
+                </div>
+                <button onclick="checkout()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium transition-colors">
+                    Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- Overlay -->
+    <div id="cart-overlay" class="fixed inset-0 bg-black/50 z-[55] hidden backdrop-blur-sm transition-opacity"></div>
+
+    <!-- Footer -->
+    <footer class="pt-20 pb-10 border-t border-white/5 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-12">
+                <div class="flex items-center gap-2 mb-6 md:mb-0">
+                    <img src="logo white.png" alt="Enivo Logo" class="h-20 w-20 object-contain" />
+                    <span class="text-l font-light tracking-tight">Wear The Evolution<span class="text-indigo-500 font-bold">.</span></span>
+                </div>
+                <div class="flex space-x-6 text-slate-400">
+                    <a href="#" class="hover:text-white transition-colors"><i class="ph-fill ph-youtube-logo text-2xl"></i></a>
+                    <a href="https://www.instagram.com/enivo.clothings" class="hover:text-white transition-colors"><i class="ph-fill ph-instagram-logo text-2xl"></i></a>
+                    <a href="#" class="hover:text-white transition-colors"><i class="ph-fill ph-tiktok-logo text-2xl"></i></a>
+                </div>
+            </div>
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+                <p>&copy; 2026 Enivo Apparel. All rights reserved.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="about.html#privacy-terms" class="hover:text-slate-300">Privacy Policy</a>
+                    <a href="about.html#privacy-terms" class="hover:text-slate-300">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Linkage & Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. Scroll Progress Bar
+            const progressBar = document.getElementById('scroll-progress');
+            window.addEventListener('scroll', () => {
+                const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                const scrolled = (winScroll / height) * 100;
+                progressBar.style.width = scrolled + '%';
+            });
+
+            // 2. Mobile Menu Toggle
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            mobileBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // 3. Scroll Reveal Animation
+            const revealElements = document.querySelectorAll('.reveal');
+            
+            const revealOnScroll = () => {
+                const windowHeight = window.innerHeight;
+                const elementVisible = 100; // Trigger point
+
+                revealElements.forEach((element) => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    if (elementTop < windowHeight - elementVisible) {
+                        element.classList.add('active');
+                    }
+                });
+            };
+
+            // Trigger once on load and then on scroll
+            revealOnScroll();
+            window.addEventListener('scroll', revealOnScroll);
+
+            // 4. Hide Login Button if Logged In
+            const heroLoginBtn = document.getElementById('hero-login-btn');
+            if (localStorage.getItem('enivo_logged_in') === 'true' && heroLoginBtn) {
+                heroLoginBtn.style.display = 'none';
+            }
+
+        });
+
+        // Cart Logic
+        let cart = [];
+
+        function getCartKey() {
+            const isLoggedIn = localStorage.getItem('enivo_logged_in') === 'true';
+            const email = localStorage.getItem('enivo_user_email');
+            return (isLoggedIn && email) ? `enivo_cart_${email}` : 'enivo_cart';
+        }
+
+        function loadCart() {
+            const saved = localStorage.getItem(getCartKey());
+            if (saved) cart = JSON.parse(saved);
+            else cart = [];
+            updateCartUI();
+        }
+
+        function saveCart() {
+            localStorage.setItem(getCartKey(), JSON.stringify(cart));
+        }
+
+        function addToCart(name, price, image) {
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ name, price, image, quantity: 1 });
+            }
+            saveCart();
+            updateCartUI();
+            openCart();
+        }
+
+        function removeFromCart(name) {
+            cart = cart.filter(item => item.name !== name);
+            updateCartUI();
+            saveCart();
+        }
+
+        function updateQuantity(name, change) {
+            const item = cart.find(item => item.name === name);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) removeFromCart(name);
+                else {
+                    updateCartUI();
+                    saveCart();
+                }
+            }
+        }
+
+        function updateCartUI() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartCounts = document.querySelectorAll('.cart-count');
+            const cartTotal = document.getElementById('cart-total');
+            
+            // Update Count
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCounts.forEach(el => {
+                el.innerText = totalItems;
+                if (totalItems > 0) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+
+            // Update Total
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            cartTotal.innerText = 'LKR ' + total.toFixed(2);
+
+            // Render Items
+            cartItemsContainer.innerHTML = '';
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<p class="text-slate-500 text-center mt-10">Your cart is empty.</p>';
+                return;
+            }
+
+            cart.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'flex gap-4 bg-slate-800/50 p-3 rounded-lg border border-white/5';
+                itemEl.innerHTML = `
+                    <img src="${item.image}" class="w-16 h-16 object-cover rounded-md" />
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium text-white">${item.name}</h4>
+                        <p class="text-xs text-slate-400">LKR ${item.price}</p>
+                        <div class="flex items-center gap-3 mt-2">
+                            <button onclick="updateQuantity('${item.name}', -1)" class="text-slate-400 hover:text-white"><i class="ph-bold ph-minus"></i></button>
+                            <span class="text-xs font-medium">${item.quantity}</span>
+                            <button onclick="updateQuantity('${item.name}', 1)" class="text-slate-400 hover:text-white"><i class="ph-bold ph-plus"></i></button>
+                        </div>
+                    </div>
+                    <button onclick="removeFromCart('${item.name}')" class="text-slate-500 hover:text-red-400 self-start"><i class="ph-bold ph-trash"></i></button>
+                `;
+                cartItemsContainer.appendChild(itemEl);
+            });
+        }
+
+        function openCart() {
+            document.getElementById('cart-sidebar').classList.remove('translate-x-full');
+            document.getElementById('cart-overlay').classList.remove('hidden');
+        }
+
+        function closeCart() {
+            document.getElementById('cart-sidebar').classList.add('translate-x-full');
+            document.getElementById('cart-overlay').classList.add('hidden');
+        }
+
+        function checkout() {
+            if(cart.length === 0) return;
+            
+            // Check login status
+            if (!localStorage.getItem('enivo_logged_in')) {
+                alert("Please log in to complete your purchase.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            alert('Thank you for your purchase!');
+            cart = [];
+            saveCart();
+            updateCartUI();
+            closeCart();
+        }
+
+        // Cart Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            const cartBtnDesktop = document.getElementById('cart-btn-desktop');
+            const cartBtnMobile = document.getElementById('cart-btn-mobile');
+            const closeCartBtn = document.getElementById('close-cart');
+            const cartOverlay = document.getElementById('cart-overlay');
+
+            if(cartBtnDesktop) cartBtnDesktop.addEventListener('click', openCart);
+            if(cartBtnMobile) cartBtnMobile.addEventListener('click', openCart);
+            if(closeCartBtn) closeCartBtn.addEventListener('click', closeCart);
+            if(cartOverlay) cartOverlay.addEventListener('click', closeCart);
+
+            loadCart();
+        });
+    </script>
+
+</body>
+</html>
