@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account | Enivo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-nav { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-50 min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center gap-2 cursor-pointer">
+                    <img src="logo white.png" alt="Enivo Logo" class="h-14 w-14 object-contain" />
+                    <span class="text-[10px] font-light tracking-widest">STYLE | VISION | LEGACY<span class="text-indigo-100 font-bold">.</span></span>
+                </a>
+                
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="index.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</a>
+                    <a href="about.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">About Us</a>
+                    <a href="store.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Store</a>
+                    
+                    <div class="flex items-center gap-3 ml-2">
+                        <a href="account.html" class="text-white transition-colors ml-2" title="My Account">
+                            <i class="ph-fill ph-user text-2xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="md:hidden flex items-center gap-4">
+                    <a href="account.html" class="text-white transition-colors">
+                        <i class="ph-fill ph-user text-2xl"></i>
+                    </a>
+                    <a href="index.html" class="text-slate-300 hover:text-white"><i class="ph ph-house text-2xl"></i></a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="flex-grow flex items-center justify-center pt-32 pb-20 px-4 relative">
+        <!-- Background Blobs -->
+        <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50"></div>
+        <div class="absolute bottom-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50"></div>
+
+        <div id="account-container" class="w-full max-w-2xl relative z-10">
+            <!-- Content injected by JS -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('account-container');
+            const isLoggedIn = localStorage.getItem('enivo_logged_in') === 'true';
+
+            if (!isLoggedIn) {
+                container.innerHTML = `
+                    <div class="glass-card rounded-2xl p-8 text-center shadow-2xl">
+                        <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="ph-duotone ph-lock-key text-4xl text-slate-400"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-4">Account Access Required</h2>
+                        <p class="text-slate-400 mb-8">Please log in to view your profile and manage your settings.</p>
+                        <a href="login.html" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-8 py-3 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-500/25">
+                            Log In / Register
+                        </a>
+                    </div>
+                `;
+            } else {
+                // Load saved data
+                const savedName = localStorage.getItem('enivo_user_name') || '';
+                const savedEmail = localStorage.getItem('enivo_user_email') || '';
+                const savedPhone = localStorage.getItem('enivo_user_phone') || '';
+                const savedAddress = localStorage.getItem('enivo_user_address') || '';
+
+                container.innerHTML = `
+                    <div class="glass-card rounded-2xl p-8 shadow-2xl">
+                        <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-6">
+                            <h2 class="text-2xl font-bold flex items-center gap-3">
+                                <i class="ph-duotone ph-user-circle text-indigo-400 text-3xl"></i>
+                                My Account
+                            </h2>
+                            <button id="logout-btn" class="text-sm text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
+                                <i class="ph-bold ph-sign-out"></i> Log Out
+                            </button>
+                        </div>
+
+                        <form id="profile-form" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+                                    <input type="text" id="input-name" value="${savedName}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="John Doe">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                                    <input type="text" id="input-username" value="${savedName.toLowerCase().replace(/\s/g, '')}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="johndoe">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
+                                <input type="email" id="input-email" value="${savedEmail}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="you@example.com">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Phone Number</label>
+                                <input type="tel" id="input-phone" value="${savedPhone}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="+1 (555) 000-0000">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Shipping Address</label>
+                                <input type="text" id="input-address" value="${savedAddress}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="123 Fashion St, New York, NY">
+                            </div>
+
+                            <div class="pt-4">
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Change Password</label>
+                                <input type="password" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="New Password (leave blank to keep current)">
+                            </div>
+
+                            <div class="pt-6 border-t border-white/10 flex justify-end">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-500/25 flex items-center gap-2">
+                                    <i class="ph-bold ph-floppy-disk"></i> Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+
+                // Logout Logic
+                document.getElementById('logout-btn').addEventListener('click', () => {
+                    localStorage.removeItem('enivo_logged_in');
+                    window.location.reload();
+                });
+
+                // Save Logic
+                document.getElementById('profile-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('input-name').value;
+                    const email = document.getElementById('input-email').value;
+                    const phone = document.getElementById('input-phone').value;
+                    const address = document.getElementById('input-address').value;
+
+                    localStorage.setItem('enivo_user_name', name);
+                    localStorage.setItem('enivo_user_email', email);
+                    localStorage.setItem('enivo_user_phone', phone);
+                    localStorage.setItem('enivo_user_address', address);
+
+                    alert('Profile updated successfully!');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
