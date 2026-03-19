@@ -42,9 +42,12 @@
                     <input type="email" name="email" required class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="you@example.com">
                 </div>
                 
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
-                    <input type="password" name="password" required class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="••••••••">
+                <div id="password-container">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-medium text-slate-300">Password</label>
+                        <button type="button" id="forgot-pwd-btn" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">Forgot Password?</button>
+                    </div>
+                    <input type="password" id="password-input" name="password" required class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="••••••••">
                 </div>
 
                 <input type="hidden" name="action" value="login" id="action-input">
@@ -70,7 +73,7 @@
         // Initialize Supabase (Replace with your actual project URL and anon key)
         const supabaseUrl = 'https://gkwlgduowvopjvjjdmdh.supabase.co';
         const supabaseKey = 'sb_publishable_vcCf3PuoeUzQkwQPivJt5g_VclnRH7B';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
@@ -78,6 +81,7 @@
             const success = params.get('success');
             const email = params.get('email');
             let isRegister = params.get('showRegister') === 'true';
+            let isForgotPwd = false;
 
             const form = document.getElementById('login-form');
             const formTitle = document.querySelector('h2');
@@ -86,14 +90,22 @@
             const submitBtn = document.getElementById('submit-btn');
             const toggleBtn = document.getElementById('toggle-mode');
             const messageContainer = document.getElementById('message-container');
+            const forgotPwdBtn = document.getElementById('forgot-pwd-btn');
+            const passwordContainer = document.getElementById('password-container');
+            const passwordInput = document.getElementById('password-input');
+
+            // Helper function to show UI notifications
+            const showUIMessage = (msg, isError = false) => {
+                messageContainer.innerHTML = '';
+                const div = document.createElement('div');
+                div.className = `mb-4 p-3 rounded border text-sm text-center ${isError ? 'bg-red-500/20 border-red-500/50 text-red-200' : 'bg-green-500/20 border-green-500/50 text-green-200'}`;
+                div.textContent = msg;
+                messageContainer.appendChild(div);
+            };
 
             // Handle Messages
             if (error || success) {
-                const msg = error || success;
-                const div = document.createElement('div');
-                div.className = `mb-4 p-3 rounded border text-sm text-center ${error ? 'bg-red-500/20 border-red-500/50 text-red-200' : 'bg-green-500/20 border-green-500/50 text-green-200'}`;
-                div.textContent = msg;
-                messageContainer.appendChild(div);
+                showUIMessage(error || success, !!error);
             }
 
             // Handle Email
@@ -104,11 +116,24 @@
 
             // Function to update UI based on mode
             const updateUI = () => {
-                if (isRegister) {
+                if (isForgotPwd) {
+                    if(formTitle) formTitle.textContent = "Reset Password";
+                    if(formDesc) formDesc.textContent = "Enter your email to receive a reset link.";
+                    if(actionInput) actionInput.value = 'reset';
+                    if(passwordContainer) passwordContainer.style.display = 'none';
+                    if(passwordInput) passwordInput.required = false;
+                    if(submitBtn) {
+                        submitBtn.textContent = "Send Reset Link";
+                        submitBtn.className = "w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-500/25";
+                    }
+                    if(toggleBtn) toggleBtn.innerHTML = 'Remember your password? <span class="text-indigo-400 font-medium">Sign In</span>';
+                } else if (isRegister) {
                     // Register Mode
                     if(formTitle) formTitle.textContent = "Create Account";
                     if(formDesc) formDesc.textContent = "Join us to start shopping.";
                     if(actionInput) actionInput.value = 'add'; // Ensure this is 'add'
+                    if(passwordContainer) passwordContainer.style.display = 'block';
+                    if(passwordInput) passwordInput.required = true;
                     if(submitBtn) {
                         submitBtn.textContent = "Register Now";
                         submitBtn.className = "w-full bg-pink-600 hover:bg-pink-700 text-white font-medium py-3 rounded-lg transition-all duration-300 shadow-lg shadow-pink-500/25";
@@ -119,6 +144,8 @@
                     if(formTitle) formTitle.textContent = "Welcome Back";
                     if(formDesc) formDesc.textContent = "Enter your details to access your account.";
                     if(actionInput) actionInput.value = 'login';
+                    if(passwordContainer) passwordContainer.style.display = 'block';
+                    if(passwordInput) passwordInput.required = true;
                     if(submitBtn) {
                         submitBtn.textContent = "Sign In";
                         submitBtn.className = "w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-500/25";
@@ -133,7 +160,6 @@
                     e.preventDefault();
 
                     const emailInput = form.querySelector('input[name="email"]');
-                    const passwordInput = form.querySelector('input[name="password"]');
                     
                     // Use the hidden input as the source of truth for the action
                     const currentAction = actionInput.value || (isRegister ? 'add' : 'login');
@@ -149,37 +175,70 @@
                         payload.details = 'Registered User';
                     }
 
+                    // Loading State
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="flex items-center justify-center gap-2"><i class="ph-bold ph-spinner animate-spin text-lg"></i> Processing...</span>';
+                    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+                    messageContainer.innerHTML = ''; // Clear previous messages
+
+                    const resetButton = () => {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                        updateUI(); // restores original text and styling
+                    };
+
                     try {
                         let authData, authError;
 
+                        // 1-Minute Timeout Promise
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('Request timed out after 1 minute. Please try again.')), 60000)
+                        );
+
+                        // Setup the Authentication Promise
+                        let authPromise;
                         if (currentAction === 'add') {
-                            // Register user with Supabase
-                            const { data, error } = await supabase.auth.signUp({
-                                email: payload.username,
-                                password: payload.password
+                            authPromise = supabaseClient.auth.signUp({ email: payload.username, password: payload.password });
+                        } else if (currentAction === 'reset') {
+                            authPromise = supabaseClient.auth.resetPasswordForEmail(payload.username, {
+                                redirectTo: window.location.href.split('?')[0].replace('login.html', 'account.html')
                             });
-                            authData = data;
-                            authError = error;
                         } else {
-                            // Log in user with Supabase
-                            const { data, error } = await supabase.auth.signInWithPassword({
-                                email: payload.username,
-                                password: payload.password
-                            });
-                            authData = data;
-                            authError = error;
+                            authPromise = supabaseClient.auth.signInWithPassword({ email: payload.username, password: payload.password });
                         }
 
+                        // Race the Supabase request against the timeout
+                        const result = await Promise.race([authPromise, timeoutPromise]);
+                        
+                        authData = result.data;
+                        authError = result.error;
+
                         if (authError) {
-                            alert(authError.message);
+                            showUIMessage(authError.message, true);
+                            resetButton();
+                            return;
+                        }
+
+                        if (currentAction === 'reset') {
+                            showUIMessage('Password reset link sent to your email.', false);
+                            resetButton();
                             return;
                         }
 
                         if (currentAction === 'add') {
-                            alert('Registration successful! Please verify your email (if enabled) or sign in.');
-                            // Switch to login mode
-                            isRegister = false;
-                            updateUI();
+                            if (authData.session) {
+                                // Auto-login if email confirmation is disabled
+                                localStorage.setItem('enivo_logged_in', 'true');
+                                localStorage.setItem('enivo_user_email', authData.user.email);
+                                localStorage.setItem('enivo_user_id', authData.user.id);
+                                
+                                // Clear guest cart so no automatic items appear after sign up
+                                localStorage.removeItem('enivo_cart');
+                                
+                                window.location.href = 'index.html';
+                            } else {
+                                window.location.href = 'login.html?success=' + encodeURIComponent('Sign in successful and link sent to mail for confirm sign up.');
+                            }
                         } else {
                             // Login Success
                             localStorage.setItem('enivo_logged_in', 'true');
@@ -202,7 +261,8 @@
                         }
                     } catch (error) {
                         console.error('Error:', error);
-                        alert(error.message);
+                        showUIMessage(error.message, true);
+                        resetButton();
                     }
                 });
             }
@@ -213,9 +273,23 @@
             // Toggle Event
             if (toggleBtn) {
                 toggleBtn.addEventListener('click', () => {
-                    isRegister = !isRegister;
+                    if (isForgotPwd) {
+                        isForgotPwd = false;
+                        isRegister = false;
+                    } else {
+                        isRegister = !isRegister;
+                    }
                     updateUI();
                     messageContainer.innerHTML = ''; // Clear messages on toggle
+                });
+            }
+
+            if (forgotPwdBtn) {
+                forgotPwdBtn.addEventListener('click', () => {
+                    isForgotPwd = true;
+                    isRegister = false;
+                    updateUI();
+                    messageContainer.innerHTML = '';
                 });
             }
         });

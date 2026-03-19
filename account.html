@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .glass-nav { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
@@ -58,8 +59,22 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // Initialize Supabase
+        const supabaseUrl = 'https://gkwlgduowvopjvjjdmdh.supabase.co';
+        const supabaseKey = 'sb_publishable_vcCf3PuoeUzQkwQPivJt5g_VclnRH7B';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.addEventListener('DOMContentLoaded', async () => {
             const container = document.getElementById('account-container');
+            
+            // Check for active Supabase session (handles email link redirects like password reset)
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                localStorage.setItem('enivo_logged_in', 'true');
+                localStorage.setItem('enivo_user_email', session.user.email);
+                localStorage.setItem('enivo_user_id', session.user.id);
+            }
+
             const isLoggedIn = localStorage.getItem('enivo_logged_in') === 'true';
 
             if (!isLoggedIn) {
@@ -76,11 +91,23 @@
                     </div>
                 `;
             } else {
-                // Load saved data
-                const savedName = localStorage.getItem('enivo_user_name') || '';
-                const savedEmail = localStorage.getItem('enivo_user_email') || '';
-                const savedPhone = localStorage.getItem('enivo_user_phone') || '';
-                const savedAddress = localStorage.getItem('enivo_user_address') || '';
+                // Fetch profile data
+                const userEmail = localStorage.getItem('enivo_user_email');
+                let profileData = null;
+
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('email', userEmail)
+                        .single();
+                        
+                    if (!error && data) {
+                        profileData = data;
+                    }
+                } catch (err) {
+                    console.error('Error fetching profile:', err);
+                }
 
                 container.innerHTML = `
                     <div class="glass-card rounded-2xl p-8 shadow-2xl">
@@ -94,39 +121,50 @@
                             </button>
                         </div>
 
+                        <div id="message-container"></div>
+
                         <form id="profile-form" class="space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label class="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
-                                    <input type="text" id="input-name" value="${savedName}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="John Doe">
+                                    <input type="text" id="input-name" value="${profileData ? (profileData.full_name || '') : ''}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Enter your full name">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
-                                    <input type="text" id="input-username" value="${savedName.toLowerCase().replace(/\s/g, '')}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="johndoe">
+                                    <input type="text" id="input-username" value="${profileData ? (profileData.username || '') : ''}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Choose a username">
                                 </div>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-                                <input type="email" id="input-email" value="${savedEmail}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="you@example.com">
+                                <input type="email" id="input-email" value="${profileData ? (profileData.contact_email || '') : ''}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Enter your email address">
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-slate-300 mb-2">Phone Number</label>
-                                <input type="tel" id="input-phone" value="${savedPhone}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="+1 (555) 000-0000">
+                                <input type="tel" id="input-phone" value="${profileData ? (profileData.phone || '') : ''}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Enter your phone number">
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-slate-300 mb-2">Shipping Address</label>
-                                <input type="text" id="input-address" value="${savedAddress}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="123 Fashion St, New York, NY">
+                                <input type="text" id="input-address" value="${profileData ? (profileData.address || profileData.addres || '') : ''}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Enter your shipping address">
                             </div>
 
-                            <div class="pt-4">
-                                <label class="block text-sm font-medium text-slate-300 mb-2">Change Password</label>
-                                <input type="password" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="New Password (leave blank to keep current)">
+                            <div class="pt-6 border-t border-white/10">
+                                <h3 class="text-lg font-medium text-white mb-4">Change Password</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-300 mb-2">Current Password</label>
+                                        <input type="password" id="input-current-password" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Required if changing password">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-300 mb-2">New Password</label>
+                                        <input type="password" id="input-password" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Leave blank to keep current">
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="pt-6 border-t border-white/10 flex justify-end">
+                            <div class="pt-6 flex justify-end">
                                 <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-500/25 flex items-center gap-2">
                                     <i class="ph-bold ph-floppy-disk"></i> Save Changes
                                 </button>
@@ -136,25 +174,107 @@
                 `;
 
                 // Logout Logic
-                document.getElementById('logout-btn').addEventListener('click', () => {
+                document.getElementById('logout-btn').addEventListener('click', async () => {
+                    await supabaseClient.auth.signOut(); // Ensure Supabase clears the actual session token
                     localStorage.removeItem('enivo_logged_in');
+                    localStorage.removeItem('enivo_user_email');
+                    localStorage.removeItem('enivo_user_id');
                     window.location.reload();
                 });
 
+                // UI Message helper
+                const showMessage = (msg, isError = false) => {
+                    const msgContainer = document.getElementById('message-container');
+                    msgContainer.innerHTML = '';
+                    const div = document.createElement('div');
+                    div.className = `mb-6 p-3 rounded border text-sm text-center ${isError ? 'bg-red-500/20 border-red-500/50 text-red-200' : 'bg-green-500/20 border-green-500/50 text-green-200'}`;
+                    div.textContent = msg;
+                    msgContainer.appendChild(div);
+                    
+                    if (!isError) {
+                        setTimeout(() => { msgContainer.innerHTML = ''; }, 3000);
+                    }
+                };
+
                 // Save Logic
-                document.getElementById('profile-form').addEventListener('submit', (e) => {
+                document.getElementById('profile-form').addEventListener('submit', async (e) => {
                     e.preventDefault();
+                    
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    const originalBtnHtml = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-lg"></i> Saving...';
+                    submitBtn.disabled = true;
+                    document.getElementById('message-container').innerHTML = '';
+
                     const name = document.getElementById('input-name').value;
-                    const email = document.getElementById('input-email').value;
+                    const username = document.getElementById('input-username').value;
+                    const contactEmail = document.getElementById('input-email').value;
                     const phone = document.getElementById('input-phone').value;
                     const address = document.getElementById('input-address').value;
+                    const currentPassword = document.getElementById('input-current-password') ? document.getElementById('input-current-password').value : '';
+                    const password = document.getElementById('input-password').value;
 
-                    localStorage.setItem('enivo_user_name', name);
-                    localStorage.setItem('enivo_user_email', email);
-                    localStorage.setItem('enivo_user_phone', phone);
-                    localStorage.setItem('enivo_user_address', address);
+                    const userEmail = localStorage.getItem('enivo_user_email');
 
-                    alert('Profile updated successfully!');
+                    try {
+                        // Update password if provided
+                        if (password) {
+                            if (!currentPassword) {
+                                throw new Error("Current password is required to set a new password.");
+                            }
+                            
+                            // Verify current password by attempting to sign in
+                            const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+                                email: userEmail,
+                                password: currentPassword
+                            });
+                            
+                            if (signInError) {
+                                throw new Error("Incorrect current password.");
+                            }
+
+                            const { error: pwdError } = await supabaseClient.auth.updateUser({ password: password });
+                            if (pwdError) throw pwdError;
+
+                            document.getElementById('input-current-password').value = '';
+                            document.getElementById('input-password').value = '';
+                        }
+
+                        // Check if a profile exists for this email
+                        const { data: existingData, error: fetchError } = await supabaseClient
+                            .from('profiles')
+                            .select('email')
+                            .eq('email', userEmail);
+                            
+                        if (fetchError) throw fetchError;
+                        
+                        const payload = {
+                            full_name: name,
+                            username: username,
+                            contact_email: contactEmail,
+                            phone: phone,
+                            address: address
+                        };
+                        
+                        if (existingData && existingData.length > 0) {
+                            // Update existing record
+                            const { error: updateError } = await supabaseClient.from('profiles').update(payload).eq('email', userEmail);
+                            if (updateError) throw updateError;
+                        } else {
+                            // Insert new record
+                            payload.email = userEmail; // Ensure the linking email is stored on creation
+                            const { error: insertError } = await supabaseClient.from('profiles').insert([payload]);
+                            if (insertError) throw insertError;
+                        }
+
+                        showMessage('Saved successfully');
+                    } catch (error) {
+                        console.error('Error saving profile:', error);
+                        showMessage('Error saving to database: ' + error.message, true);
+                    } finally {
+                        submitBtn.innerHTML = originalBtnHtml;
+                        submitBtn.disabled = false;
+                    }
                 });
             }
         });
