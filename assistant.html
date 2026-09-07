@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         tailwind.config = {
@@ -147,7 +149,19 @@
     <script>
         const GROQ_API_KEY = "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";
         
-        function getLiveStoreContext() {
+        const SUPABASE_URL = 'https://gkwlgduowvopjvjjdmdh.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_vcCf3PuoeUzQkwQPivJt5g_VclnRH7B';
+        const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+        async function getLiveStoreContext() {
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('products').select('*');
+                    if (!error && data && data.length > 0) {
+                        return data.map(p => `${p.name} | Category: ${p.category} | Price: LKR ${p.price} | Sizes: ${p.sizes} | Colors: ${p.colors} | Status: ${Number(p.quantity) > 0 ? 'In Stock' : 'Out of Stock'}`).join("\n");
+                    }
+                } catch(e) {}
+            }
             const raw = localStorage.getItem('enivo_store_products');
             if (raw) {
                 try {
@@ -166,10 +180,12 @@
 210(GSM) Harley Davidson FXDR T shirt | Price: LKR 2499 | Black Only | Sizes: XS, S, M, L, XL, 2XL | In Stock`;
         }
 
-        const SYSTEM_PROMPT = `You are an ecommerce assistant for a premium clothing shop named Enivo (Envio Apparel).
+        async function buildSystemPrompt() {
+            const catalog = await getLiveStoreContext();
+            return `You are an ecommerce assistant for a premium clothing shop named Enivo (Envio Apparel).
 Answer politely, concisely, and helpfully.
 Product catalog:
-${getLiveStoreContext()}
+${catalog}
 
 Store Details:
 - Contact Phone: +94 707 606 555
@@ -177,8 +193,12 @@ Store Details:
 - Location: Delivering anywhere across Sri Lanka (Online store).
 - Do not collect payment or sensitive personal information directly in chat.
 - Always conclude helpful responses with: "Please visit our website or store to complete your purchase!"`;
+        }
 
-        let chatMemory = [{ role: "system", content: SYSTEM_PROMPT }];
+        let chatMemory = [];
+        buildSystemPrompt().then(prompt => {
+            chatMemory = [{ role: "system", content: prompt }];
+        });
 
         const chatMessages = document.getElementById('chat-messages');
         const chatForm = document.getElementById('chat-form');
@@ -297,8 +317,9 @@ Store Details:
             chatForm.dispatchEvent(new Event('submit'));
         }
 
-        function clearChatMemory() {
-            chatMemory = [{ role: "system", content: SYSTEM_PROMPT }];
+        async function clearChatMemory() {
+            const prompt = await buildSystemPrompt();
+            chatMemory = [{ role: "system", content: prompt }];
             chatMessages.innerHTML = `
                 <div class="flex items-start gap-3">
                     <div class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20">

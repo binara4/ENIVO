@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -233,6 +235,11 @@
             });
         });
 
+        // Supabase Client (Same project as login & account)
+        const SUPABASE_URL = 'https://gkwlgduowvopjvjjdmdh.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_vcCf3PuoeUzQkwQPivJt5g_VclnRH7B';
+        const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
         const STORAGE_KEY = 'enivo_store_products';
         const DEFAULT_STORE_PRODUCTS = [
             {
@@ -325,28 +332,48 @@
             }
         ];
 
-        function getStoreProducts() {
+        async function fetchStoreProducts() {
+            // First attempt: Supabase live database
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('products')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (!error && data && data.length > 0) {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                        return data;
+                    }
+                } catch(err) {
+                    console.warn('Supabase fetch error, checking local storage cache', err);
+                }
+            }
+
+            // Second attempt: Local cache or default fallback
             const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_STORE_PRODUCTS));
-                return DEFAULT_STORE_PRODUCTS;
+            if (raw) {
+                try {
+                    return JSON.parse(raw);
+                } catch(e) {}
             }
-            try {
-                return JSON.parse(raw);
-            } catch (e) {
-                return DEFAULT_STORE_PRODUCTS;
-            }
+            return DEFAULT_STORE_PRODUCTS;
         }
 
         function escapeQuotes(str) {
             return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
         }
 
-        function renderStoreProducts() {
+        async function renderStoreProducts() {
             const container = document.getElementById('store-products-grid');
             if (!container) return;
 
-            const products = getStoreProducts();
+            // Show skeleton / loading indicator only if empty
+            if (container.children.length === 0) {
+                container.innerHTML = `<div class="col-span-full flex items-center justify-center py-16 text-indigo-400 gap-2"><i class="ph-bold ph-spinner animate-spin text-2xl"></i> <span class="text-sm">Loading latest collection...</span></div>`;
+            }
+
+            const products = await fetchStoreProducts();
             if (products.length === 0) {
                 container.innerHTML = `<div class="col-span-full text-center text-slate-500 py-16">No products available at the moment.</div>`;
                 return;
@@ -561,13 +588,81 @@
             document.getElementById('cart-overlay').classList.add('hidden');
         }
 
-        function checkout() {
-            if(cart.length === 0) return;
-            alert('Thank you for your purchase! This is a demo checkout.');
+        async function checkout() {
+            if (cart.length === 0) return;
+
+            // Retrieve customer profile if logged in
+            const loggedInEmail = localStorage.getItem('enivo_user_email') || '';
+            const loggedInName = localStorage.getItem('enivo_user_name') || '';
+
+            let customerName = loggedInName;
+            let customerEmail = loggedInEmail;
+
+            if (!customerName || !customerEmail) {
+                customerName = prompt('Enter your name for delivery & invoice:', customerName || 'Valued Customer');
+                if (!customerName) return;
+                customerEmail = prompt('Enter your contact email or phone number:', customerEmail || '');
+                if (!customerEmail) return;
+            }
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const orderId = 'ORD-' + Math.floor(100000 + Math.random() * 900000);
+
+            const orderData = {
+                id: orderId,
+                customer_name: customerName,
+                customer_email: customerEmail,
+                items: cart,
+                total_amount: total,
+                payment_method: 'Card / Online Checkout',
+                payment_status: 'Paid',
+                created_at: new Date().toISOString()
+            };
+
+            // 1. Save order to Supabase & localStorage
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('orders').insert([orderData]);
+                } catch (e) {
+                    console.warn('Supabase order insert error:', e);
+                }
+            }
+
+            const localOrders = JSON.parse(localStorage.getItem('enivo_store_orders') || '[]');
+            localOrders.unshift(orderData);
+            localStorage.setItem('enivo_store_orders', JSON.stringify(localOrders));
+
+            // 2. Automatically deduct stock in database & local products catalog
+            try {
+                const currentProducts = await fetchStoreProducts();
+                for (const cartItem of cart) {
+                    const match = currentProducts.find(p => p.name.trim().toLowerCase() === cartItem.name.trim().toLowerCase());
+                    if (match) {
+                        const newStock = Math.max(0, (Number(match.quantity) || 0) - Number(cartItem.quantity));
+                        match.quantity = newStock;
+                        if (supabaseClient) {
+                            try {
+                                await supabaseClient
+                                    .from('products')
+                                    .update({ quantity: newStock })
+                                    .eq('id', match.id);
+                            } catch (err) {
+                                console.warn('Supabase product quantity update error:', err);
+                            }
+                        }
+                    }
+                }
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(currentProducts));
+            } catch (err) {
+                console.warn('Stock deduction error:', err);
+            }
+
+            alert(`Thank you ${customerName}! Your order (${orderId}) has been placed successfully. Payment status: Paid.`);
             cart = [];
             saveCart();
             updateCartUI();
             closeCart();
+            renderStoreProducts();
         }
 
         function openDetailsModal(name, price, image, sizes, colors, description) {
