@@ -1,0 +1,16 @@
+product_id,name,category,price,description,stock
+1,Men Classic T-Shirt,Tops,19,"Cotton round neck casual t-shirt",50
+2,Women Summer Dress,Dresses,35,"Lightweight floral summer dress",30
+3,Men Slim Fit Jeans,Bottoms,45,"Stretchable slim fit denim jeans",25
+4,Women Hoodie,Tops,40,"Warm fleece hoodie for casual wear",20
+5,Unisex Oversized Sweatshirt,Tops,38,"Trendy oversized streetwear sweatshirt",18
+6,Men Formal Shirt,Shirts,30,"Long sleeve office formal shirt",35
+7,Women High Waist Skirt,Bottoms,28,"Elegant high waist midi skirt",22
+8,Men Jogger Pants,Bottoms,32,"Comfortable cotton joggers",27
+9,Women Crop Top,Tops,18,"Stylish short crop top",40
+10,Unisex Denim Jacket,Outerwear,65,"Classic blue denim jacket",15
+11,Men Polo Shirt,Tops,26,"Casual polo with breathable fabric",33
+12,Women Blazer,Outerwear,70,"Professional slim fit blazer",12
+13,Men Shorts,Bottoms,22,"Casual summer shorts",45
+14,Women Cardigan,Outerwear,36,"Soft knit open cardigan",17
+15,Unisex Tracksuit Set,Activewear,55,"Sportswear tracksuit set",14

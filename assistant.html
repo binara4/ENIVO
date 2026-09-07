@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envio Assistant | AI Shopping Assistant</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: { 'fade-in-up': 'fadeInUp 0.6s ease-out forwards' },
+                    keyframes: { fadeInUp: { '0%': { opacity: '0', transform: 'translateY(16px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } } }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-nav { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-card { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-50 antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center gap-2 cursor-pointer">
+                    <img src="logo white.png" alt="Envio Logo" class="h-10 w-10 object-contain" />
+                    <span class="text-base font-light tracking-tight">STYLE | VISION | LEGACY<span class="text-indigo-400 font-bold">.</span></span>
+                </a>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="index.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</a>
+                    <a href="about.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">About Us</a>
+                    <a href="store.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Store</a>
+                    <a href="assistant.html" class="text-sm font-medium text-white transition-colors flex items-center gap-1.5 bg-indigo-600/20 px-3 py-1.5 rounded-xl border border-indigo-500/30">
+                        <i class="ph-fill ph-robot text-lg text-indigo-400"></i> Assistant
+                    </a>
+                    <a href="account.html" class="text-slate-300 hover:text-white transition-colors ml-2" title="My Account">
+                        <i class="ph ph-user text-2xl"></i>
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center gap-4">
+                    <a href="store.html" class="text-slate-300 hover:text-white text-sm">Store</a>
+                    <a href="account.html" class="text-slate-300 hover:text-white transition-colors">
+                        <i class="ph ph-user text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Assistant Section -->
+    <section class="pt-28 pb-12 flex-1 flex flex-col items-center relative overflow-hidden px-4">
+        <!-- Background Glows -->
+        <div class="absolute top-10 -left-10 w-80 h-80 bg-purple-500/20 rounded-full blur-[128px] pointer-events-none"></div>
+        <div class="absolute top-10 -right-10 w-80 h-80 bg-indigo-500/20 rounded-full blur-[128px] pointer-events-none"></div>
+
+        <div class="max-w-4xl w-full mx-auto flex-1 flex flex-col z-10">
+            <!-- Header Title -->
+            <div class="text-center mb-6 animate-fade-in-up">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-2">
+                    <i class="ph-bold ph-sparkle"></i> AI Stylist & Store Guide
+                </div>
+                <h1 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">Envio Assistant</h1>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">Ask anything about our apparel, sizing, styling advice, or delivery across Sri Lanka.</p>
+            </div>
+
+            <!-- Chat Window Container -->
+            <div class="glass-card rounded-3xl border border-white/10 shadow-2xl flex-1 flex flex-col overflow-hidden" style="min-height: 520px; max-height: 72vh;">
+                <!-- Header -->
+                <div class="px-6 py-4 border-b border-white/10 bg-slate-900/60 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+                            <i class="ph-fill ph-robot text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm">Envio AI Support</h3>
+                            <p class="text-[11px] text-emerald-400 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Online &amp; Ready
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Quick Suggestions Reset -->
+                    <button onclick="clearChatMemory()" class="text-xs text-slate-400 hover:text-slate-200 transition-colors flex items-center gap-1">
+                        <i class="ph ph-arrow-counter-clockwise"></i> Reset Chat
+                    </button>
+                </div>
+
+                <!-- Messages Area -->
+                <div id="chat-messages" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-slate-950/40">
+                    <!-- Initial Welcome Message -->
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20">
+                            <i class="ph-fill ph-robot text-base"></i>
+                        </div>
+                        <div class="bg-slate-800/90 border border-white/5 rounded-2xl rounded-tl-none p-4 text-sm text-slate-200 max-w-[85%] leading-relaxed shadow-sm">
+                            <p class="font-semibold text-white mb-1">Hello! Welcome to Envio Apparel.</p>
+                            <p>I can help you explore our collection (Graphic Tees, 210GSM Cotton, Demon Slayer, John Wick, Bugatti, etc.), check sizing &amp; stock, or answer delivery questions!</p>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <button onclick="quickAsk('What graphic t-shirts do you have?')" class="text-xs bg-slate-700/60 hover:bg-indigo-600 hover:text-white px-2.5 py-1 rounded-lg border border-white/5 text-slate-300 transition-all">
+                                    👕 What graphic tees do you have?
+                                </button>
+                                <button onclick="quickAsk('What are your delivery details and contact info?')" class="text-xs bg-slate-700/60 hover:bg-indigo-600 hover:text-white px-2.5 py-1 rounded-lg border border-white/5 text-slate-300 transition-all">
+                                    🚚 Delivery &amp; Contact info
+                                </button>
+                                <button onclick="quickAsk('What sizes are available for 210GSM tees?')" class="text-xs bg-slate-700/60 hover:bg-indigo-600 hover:text-white px-2.5 py-1 rounded-lg border border-white/5 text-slate-300 transition-all">
+                                    📏 Sizing details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Form -->
+                <div class="p-4 border-t border-white/10 bg-slate-900/80">
+                    <form id="chat-form" class="flex items-center gap-3">
+                        <input type="text" id="chat-input" placeholder="Type your question about clothes, sizes, prices..." autocomplete="off"
+                            class="flex-1 bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-2xl font-medium text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all shrink-0">
+                            <span>Send</span>
+                            <i class="ph-bold ph-paper-plane-right"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chat Bot Script -->
+    <script>
+        const GROQ_API_KEY = "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";
+        
+        function getLiveStoreContext() {
+            const raw = localStorage.getItem('enivo_store_products');
+            if (raw) {
+                try {
+                    const products = JSON.parse(raw);
+                    return products.map(p => `${p.name} | Category: ${p.category} | Price: LKR ${p.price} | Sizes: ${p.sizes} | Colors: ${p.colors} | Status: ${p.quantity > 0 ? 'In Stock' : 'Out of Stock'}`).join("\n");
+                } catch(e) {}
+            }
+            return `
+210(GSM) Printed T shirt | Price: LKR 2499 | Black Only | Sizes: XS, S, M, L, XL, 2XL | In Stock
+210(GSM) Miles Morales Spider Man T shirt | Price: LKR 2499 | Black Only | Sizes: XS, S, M, L, XL, 2XL | In Stock
+210(GSM) John Wick T shirt | Price: LKR 2499 | Red Only | Sizes: XS, S, M, L, XL, 2XL | In Stock
+210(GSM) Bugatti T shirt | Price: LKR 2499 | White Only | Sizes: XS, S, M, L, XL, 2XL | In Stock
+210GSM Printed T-Shirt | Price: LKR 2499 | White, Black | Sizes: S, M, L | In Stock
+210(GSM) Demon Slayer Inosuke T shirt | Price: LKR 2499 | Grey Only | Sizes: XS, S, M, L, XL, 2XL | In Stock
+210(GSM) Yamaha YZF-R6 T shirt | Price: LKR 2499 | Black Only | Sizes: XS, S, M, L, XL, 2XL | In Stock
+210(GSM) Harley Davidson FXDR T shirt | Price: LKR 2499 | Black Only | Sizes: XS, S, M, L, XL, 2XL | In Stock`;
+        }
+
+        const SYSTEM_PROMPT = `You are an ecommerce assistant for a premium clothing shop named Enivo (Envio Apparel).
+Answer politely, concisely, and helpfully.
+Product catalog:
+${getLiveStoreContext()}
+
+Store Details:
+- Contact Phone: +94 707 606 555
+- Email: enivo.clothing@gmail.com
+- Location: Delivering anywhere across Sri Lanka (Online store).
+- Do not collect payment or sensitive personal information directly in chat.
+- Always conclude helpful responses with: "Please visit our website or store to complete your purchase!"`;
+
+        let chatMemory = [{ role: "system", content: SYSTEM_PROMPT }];
+
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+
+        function appendMessage(content, isUser = false) {
+            const row = document.createElement('div');
+            row.className = 'flex items-start gap-3 ' + (isUser ? 'flex-row-reverse' : '');
+            
+            const avatar = isUser
+                ? `<div class="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center shrink-0 border border-white/10"><i class="ph-fill ph-user text-sm"></i></div>`
+                : `<div class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20"><i class="ph-fill ph-robot text-base"></i></div>`;
+
+            const bubbleClass = isUser
+                ? 'bg-indigo-600 text-white rounded-2xl rounded-tr-none'
+                : 'bg-slate-800/90 text-slate-200 border border-white/5 rounded-2xl rounded-tl-none';
+
+            row.innerHTML = `
+                ${avatar}
+                <div class="${bubbleClass} p-3.5 text-sm max-w-[85%] break-words leading-relaxed shadow-sm">
+                    ${content.replace(/\n/g, '<br>')}
+                </div>
+            `;
+            chatMessages.appendChild(row);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.id = 'typing-indicator';
+            div.className = 'flex items-start gap-3';
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+                    <i class="ph-fill ph-robot text-base"></i>
+                </div>
+                <div class="bg-slate-800 border border-white/5 rounded-2xl rounded-tl-none px-4 py-3 text-sm flex gap-1.5 items-center">
+                    <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.15s"></div>
+                    <div class="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
+                </div>
+            `;
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTyping() {
+            document.getElementById('typing-indicator')?.remove();
+        }
+
+        async function requestGroqChat(messages) {
+            // Priority 1: Call backend proxy chat.php
+            try {
+                const res = await fetch('chat.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.choices && data.choices[0]?.message?.content) {
+                        return data.choices[0].message.content;
+                    }
+                }
+            } catch (err) {
+                console.warn('chat.php unavailable, trying direct API fallback', err);
+            }
+
+            // Priority 2: Direct browser call to Groq API (fallback if running directly via file:// or non-PHP server)
+            try {
+                const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${GROQ_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'openai/gpt-oss-20b',
+                        messages: messages,
+                        temperature: 0.3
+                    })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.choices && data.choices[0]?.message?.content) {
+                        return data.choices[0].message.content;
+                    }
+                }
+            } catch (err) {
+                console.error('Direct Groq call failed', err);
+            }
+
+            // Priority 3: Built-in local offline response
+            return "Thank you for reaching out! We are currently having a temporary connection delay with the AI service. Envio offers premium 210 GSM printed t-shirts including Anime, Automotive, and Streetwear editions priced at LKR 2499. For instant assistance, reach out on WhatsApp/Phone at +94 707 606 555 or email enivo.clothing@gmail.com. Please visit our website or store to complete your purchase!";
+        }
+
+        async function handleUserMessage(msgText) {
+            if (!msgText) return;
+            appendMessage(msgText, true);
+            chatMemory.push({ role: "user", content: msgText });
+            showTyping();
+
+            try {
+                const reply = await requestGroqChat(chatMemory);
+                removeTyping();
+                appendMessage(reply, false);
+                chatMemory.push({ role: "assistant", content: reply });
+            } catch (error) {
+                removeTyping();
+                appendMessage("Sorry, I'm having trouble connecting right now. Please try again or reach out to +94 707 606 555!", false);
+                chatMemory.pop();
+            }
+        }
+
+        function quickAsk(text) {
+            chatInput.value = text;
+            chatForm.dispatchEvent(new Event('submit'));
+        }
+
+        function clearChatMemory() {
+            chatMemory = [{ role: "system", content: SYSTEM_PROMPT }];
+            chatMessages.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/20">
+                        <i class="ph-fill ph-robot text-base"></i>
+                    </div>
+                    <div class="bg-slate-800/90 border border-white/5 rounded-2xl rounded-tl-none p-4 text-sm text-slate-200 max-w-[85%] leading-relaxed shadow-sm">
+                        <p class="font-semibold text-white mb-1">Chat reset!</p>
+                        <p>How else can I assist you with Envio apparel today?</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            chatInput.value = '';
+            handleUserMessage(text);
+        });
+    </script>
+</body>
+</html>

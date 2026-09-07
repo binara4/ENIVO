@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account | Enivo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-nav { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-50 min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center gap-2 cursor-pointer">
+                    <img src="logo white.png" alt="Enivo Logo" class="h-14 w-14 object-contain" />
+                    <span class="text-[10px] font-light tracking-widest">STYLE | VISION | LEGACY<span class="text-indigo-100 font-bold">.</span></span>
+                </a>
+                
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="index.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</a>
+                    <a href="about.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">About Us</a>
+                    <a href="store.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Store</a>
+                    
+                    <div class="flex items-center gap-3 ml-2">
+                        <a href="account.html" class="text-white transition-colors ml-2" title="My Account">
+                            <i class="ph-fill ph-user text-2xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="md:hidden flex items-center gap-4">
+                    <a href="account.html" class="text-white transition-colors">
+                        <i class="ph-fill ph-user text-2xl"></i>
+                    </a>
+                    <a href="index.html" class="text-slate-300 hover:text-white"><i class="ph ph-house text-2xl"></i></a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="flex-grow flex items-center justify-center pt-32 pb-20 px-4 relative">
+        <!-- Background Blobs -->
+        <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50"></div>
+        <div class="absolute bottom-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50"></div>
+
+        <div id="account-container" class="w-full max-w-2xl relative z-10">
+            <!-- Content injected by JS -->
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://gkwlgduowvopjvjjdmdh.supabase.co';
+        const supabaseKey = 'sb_publishable_vcCf3PuoeUzQkwQPivJt5g_VclnRH7B';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const container = document.getElementById('account-container');
+            
+            // Check for active Supabase session (handles email link redirects like password reset)
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                localStorage.setItem('enivo_logged_in', 'true');
+                localStorage.setItem('enivo_user_email', session.user.email);
+                localStorage.setItem('enivo_user_id', session.user.id);
+            }
+
+            const isLoggedIn = localStorage.getItem('enivo_logged_in') === 'true';
+
+            if (!isLoggedIn) {
+                container.innerHTML = `
+                    <div class="glass-card rounded-2xl p-8 text-center shadow-2xl">
+                        <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="ph-duotone ph-lock-key text-4xl text-slate-400"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-4">Account Access Required</h2>
+                        <p class="text-slate-400 mb-8">Please log in to view your profile and manage your settings.</p>
+                        <a href="login.html" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-8 py-3 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-500/25">
+                            Log In / Register
+                        </a>
+                    </div>
+                `;
+            } else {
+                // Fetch profile data
+                const userEmail = localStorage.getItem('enivo_user_email');
+                let profileData = null;
+
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('profiles')
+                        .select('*')
+                        .eq('email', userEmail)
+                        .single();
+                        
+                    if (!error && data) {
+                        profileData = data;
+                    }
+                } catch (err) {
+                    console.error('Error fetching profile:', err);
+                }
+
+                container.innerHTML = `
+                    <div class="glass-card rounded-2xl p-8 shadow-2xl">
+                        <div class="flex justify-between items-center mb-8 border-b border-white/10 pb-6">
+                            <h2 class="text-2xl font-bold flex items-center gap-3">
+                                <i class="ph-duotone ph-user-circle text-indigo-400 text-3xl"></i>
+                                My Account
+                            </h2>
+                            <button id="logout-btn" class="text-sm text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
+                                <i class="ph-bold ph-sign-out"></i> Log Out
+                            </button>
+                        </div>
+
+                        <div id="message-container"></div>
+
+                        <form id="profile-form" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+                                    <input type="text" id="input-name" value="${profileData ? (profileData.full_name || '') : ''}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Enter your full name">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-300 mb-2">Username</label>
+                                    <input type="text" id="input-username" value="${profileData ? (profileData.username || '') : ''}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Choose a username">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
+                                <input type="email" id="input-email" value="${profileData ? (profileData.contact_email || '') : ''}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Enter your email address">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Phone Number</label>
+                                <input type="tel" id="input-phone" value="${profileData ? (profileData.phone || '') : ''}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Enter your phone number">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Shipping Address</label>
+                                <input type="text" id="input-address" value="${profileData ? (profileData.address || profileData.addres || '') : ''}" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Enter your shipping address">
+                            </div>
+
+                            <div class="pt-6 border-t border-white/10">
+                                <h3 class="text-lg font-medium text-white mb-4">Change Password</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-300 mb-2">Current Password</label>
+                                        <input type="password" id="input-current-password" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Required if changing password">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-slate-300 mb-2">New Password</label>
+                                        <input type="password" id="input-password" class="w-full bg-slate-800/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder-slate-500" placeholder="Leave blank to keep current">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-6 flex justify-end">
+                                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-500/25 flex items-center gap-2">
+                                    <i class="ph-bold ph-floppy-disk"></i> Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                `;
+
+                // Logout Logic
+                document.getElementById('logout-btn').addEventListener('click', async () => {
+                    await supabaseClient.auth.signOut(); // Ensure Supabase clears the actual session token
+                    localStorage.removeItem('enivo_logged_in');
+                    localStorage.removeItem('enivo_user_email');
+                    localStorage.removeItem('enivo_user_id');
+                    window.location.reload();
+                });
+
+                // UI Message helper
+                const showMessage = (msg, isError = false) => {
+                    const msgContainer = document.getElementById('message-container');
+                    msgContainer.innerHTML = '';
+                    const div = document.createElement('div');
+                    div.className = `mb-6 p-3 rounded border text-sm text-center ${isError ? 'bg-red-500/20 border-red-500/50 text-red-200' : 'bg-green-500/20 border-green-500/50 text-green-200'}`;
+                    div.textContent = msg;
+                    msgContainer.appendChild(div);
+                    
+                    if (!isError) {
+                        setTimeout(() => { msgContainer.innerHTML = ''; }, 3000);
+                    }
+                };
+
+                // Save Logic
+                document.getElementById('profile-form').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    const originalBtnHtml = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="ph-bold ph-spinner animate-spin text-lg"></i> Saving...';
+                    submitBtn.disabled = true;
+                    document.getElementById('message-container').innerHTML = '';
+
+                    const name = document.getElementById('input-name').value;
+                    const username = document.getElementById('input-username').value;
+                    const contactEmail = document.getElementById('input-email').value;
+                    const phone = document.getElementById('input-phone').value;
+                    const address = document.getElementById('input-address').value;
+                    const currentPassword = document.getElementById('input-current-password') ? document.getElementById('input-current-password').value : '';
+                    const password = document.getElementById('input-password').value;
+
+                    const userEmail = localStorage.getItem('enivo_user_email');
+
+                    try {
+                        // Update password if provided
+                        if (password) {
+                            if (!currentPassword) {
+                                throw new Error("Current password is required to set a new password.");
+                            }
+                            
+                            // Verify current password by attempting to sign in
+                            const { error: signInError } = await supabaseClient.auth.signInWithPassword({
+                                email: userEmail,
+                                password: currentPassword
+                            });
+                            
+                            if (signInError) {
+                                throw new Error("Incorrect current password.");
+                            }
+
+                            const { error: pwdError } = await supabaseClient.auth.updateUser({ password: password });
+                            if (pwdError) throw pwdError;
+
+                            document.getElementById('input-current-password').value = '';
+                            document.getElementById('input-password').value = '';
+                        }
+
+                        // Check if a profile exists for this email
+                        const { data: existingData, error: fetchError } = await supabaseClient
+                            .from('profiles')
+                            .select('email')
+                            .eq('email', userEmail);
+                            
+                        if (fetchError) throw fetchError;
+                        
+                        const payload = {
+                            full_name: name,
+                            username: username,
+                            contact_email: contactEmail,
+                            phone: phone,
+                            address: address
+                        };
+                        
+                        if (existingData && existingData.length > 0) {
+                            // Update existing record
+                            const { error: updateError } = await supabaseClient.from('profiles').update(payload).eq('email', userEmail);
+                            if (updateError) throw updateError;
+                        } else {
+                            // Insert new record
+                            payload.email = userEmail; // Ensure the linking email is stored on creation
+                            const { error: insertError } = await supabaseClient.from('profiles').insert([payload]);
+                            if (insertError) throw insertError;
+                        }
+
+                        showMessage('Saved successfully');
+                    } catch (error) {
+                        console.error('Error saving profile:', error);
+                        showMessage('Error saving to database: ' + error.message, true);
+                    } finally {
+                        submitBtn.innerHTML = originalBtnHtml;
+                        submitBtn.disabled = false;
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Chat Widget -->
+    <div id="chat-widget" class="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
+        <!-- Chat Window -->
+        <div id="chat-window" class="hidden mb-4 w-[calc(100vw-3rem)] sm:w-[350px] h-[450px] glass-card rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-white/10 transition-all duration-300 transform origin-bottom-right">
+            <!-- Header -->
+            <div class="p-4 border-b border-white/10 bg-slate-800/50 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-robot text-indigo-400 text-xl"></i>
+                    <h3 class="font-bold text-white text-sm">Enivo Assistant</h3>
+                </div>
+                <button id="close-chat" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Messages Area -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900/50 flex flex-col scroll-smooth">
+                <!-- Initial greeting -->
+                <div class="flex items-start gap-2">
+                    <div class="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                        <i class="ph-fill ph-robot"></i>
+                    </div>
+                    <div class="bg-slate-800 border border-white/5 rounded-2xl rounded-tl-none px-4 py-2 text-sm text-slate-200">
+                        Hi there! I'm the Enivo Assistant. How can I help you today?
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="p-3 border-t border-white/10 bg-slate-800/50">
+                <form id="chat-form" class="flex gap-2">
+                    <input type="text" id="chat-input" class="flex-1 bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" placeholder="Type your message..." autocomplete="off">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white w-10 h-10 rounded-xl flex items-center justify-center transition-colors shrink-0">
+                        <i class="ph-bold ph-paper-plane-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toggle Button -->
+        <button id="chat-toggle" class="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-[0_0_20px_-3px_rgba(79,70,229,0.5)] flex items-center justify-center transition-transform hover:scale-110 z-50">
+            <i class="ph-fill ph-chat-teardrop-dots text-3xl"></i>
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatToggle = document.getElementById('chat-toggle');
+            const chatWindow = document.getElementById('chat-window');
+            const closeChat = document.getElementById('close-chat');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatMessages = document.getElementById('chat-messages');
+
+            let chatMemory = [{
+                role: "system",
+                content: "You are an ecommerce assistant in a clothing shop named Enivo. Answer politely. If a product is not found, say so politely. Contact Details(phone = +94 707 606 555, email = enivo.clothing@gmail.com, Address/shop=not yet have one looking forward to open but delivering to any where in sri lanka). Do not take payment or personal information. Always say 'Please visit our website to complete your purchase!' at the end of your response."
+            }];
+
+            const toggleChat = () => {
+                chatWindow.classList.toggle('hidden');
+                if (!chatWindow.classList.contains('hidden')) chatInput.focus();
+            };
+
+            if (chatToggle) chatToggle.addEventListener('click', toggleChat);
+            if (closeChat) closeChat.addEventListener('click', toggleChat);
+
+            const appendMessage = (content, isUser = false) => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'flex items-start gap-2 ' + (isUser ? 'flex-row-reverse' : '');
+                msgDiv.innerHTML = `
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isUser ? 'bg-slate-700 text-white' : 'bg-indigo-500/20 text-indigo-400'}">
+                        ${isUser ? '<i class="ph-fill ph-user"></i>' : '<i class="ph-fill ph-robot"></i>'}
+                    </div>
+                    <div class="px-4 py-2 text-sm text-slate-200 max-w-[85%] break-words border border-white/5 ${isUser ? 'bg-indigo-600 rounded-2xl rounded-tr-none' : 'bg-slate-800 rounded-2xl rounded-tl-none'}">
+                        ${content}
+                    </div>
+                `;
+                chatMessages.appendChild(msgDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+
+            const showTyping = () => {
+                const msgDiv = document.createElement('div');
+                msgDiv.id = 'typing-indicator';
+                msgDiv.className = 'flex items-start gap-2';
+                msgDiv.innerHTML = `<div class="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0"><i class="ph-fill ph-robot"></i></div><div class="bg-slate-800 border border-white/5 rounded-2xl rounded-tl-none px-4 py-3 text-sm flex gap-1 items-center"><div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></div><div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div><div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div></div>`;
+                chatMessages.appendChild(msgDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+
+            if (chatForm) {
+                chatForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const message = chatInput.value.trim();
+                    if (!message) return;
+
+                    appendMessage(message, true);
+                    chatInput.value = '';
+                    chatMemory.push({ role: "user", content: message });
+                    showTyping();
+
+                    try {
+                        const response = await fetch('chat.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: chatMemory }) });
+                        document.getElementById('typing-indicator')?.remove();
+                        if (!response.ok) throw new Error('Network error');
+                        const data = await response.json();
+                        appendMessage(data.choices[0].message.content, false);
+                        chatMemory.push({ role: "assistant", content: data.choices[0].message.content });
+                    } catch (error) {
+                        document.getElementById('typing-indicator')?.remove();
+                        appendMessage("Sorry, I'm having trouble connecting right now. Please try again later.", false);
+                        chatMemory.pop();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

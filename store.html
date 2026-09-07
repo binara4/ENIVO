@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store | Envio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: { 'fade-in-up': 'fadeInUp 0.8s ease-out forwards', 'blob': 'blob 7s infinite' },
+                    keyframes: { 
+                        fadeInUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        blob: { '0%': { transform: 'translate(0px, 0px) scale(1)' }, '33%': { transform: 'translate(30px, -50px) scale(1.1)' }, '66%': { transform: 'translate(-20px, 20px) scale(0.9)' }, '100%': { transform: 'translate(0px, 0px) scale(1)' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-nav { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .glass-card { background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-50 antialiased overflow-x-hidden selection:bg-indigo-500 selection:text-white">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 glass-nav transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <a href="index.html" class="flex items-center gap-2 cursor-pointer">
+                    <img src="logo white.png" alt="Envio Logo" class="h-14 w-14 object-contain" />
+                    <span class="text-[10px] font-light tracking-widest">STYLE | VISION |LEGACY<span class="text-indigo-100 font-bold">.</span></span>
+                </a>
+                
+                <div class="hidden md:flex space-x-6 items-center">
+                    <a href="index.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">Home</a>
+                    <a href="about.html" class="text-sm font-medium text-slate-300 hover:text-white transition-colors">About Us</a>
+                    <a href="store.html" class="text-sm font-medium text-white transition-colors">Store</a>
+                    
+                    <div class="flex items-center gap-3 ml-2">
+                        <button id="cart-btn-desktop" class="relative text-slate-300 hover:text-white transition-colors ml-2">
+                            <i class="ph ph-shopping-cart text-2xl"></i>
+                            <span class="cart-count absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                        </button>
+                        <a href="account.html" class="text-slate-300 hover:text-white transition-colors ml-2" title="My Account">
+                            <i class="ph ph-user text-2xl"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="md:hidden flex items-center gap-4">
+                    <button id="cart-btn-mobile" class="relative text-slate-300 hover:text-white transition-colors">
+                        <i class="ph ph-shopping-cart text-2xl"></i>
+                        <span class="cart-count absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
+                    </button>
+                    <a href="account.html" class="text-slate-300 hover:text-white transition-colors">
+                        <i class="ph ph-user text-2xl"></i>
+                    </a>
+                    <button id="mobile-menu-btn" class="text-slate-300 hover:text-white focus:outline-none">
+                        <i class="ph ph-list text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="mobile-menu" class="hidden md:hidden glass-nav border-t border-white/5 absolute w-full">
+            <div class="px-2 pt-2 pb-6 space-y-1 sm:px-3 flex flex-col items-center">
+                <a href="index.html" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white">Home</a>
+                <a href="about.html" class="block px-3 py-2 text-base font-medium text-slate-300 hover:text-white">About Us</a>
+                <a href="store.html" class="block px-3 py-2 text-base font-medium text-white">Store</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Store Section -->
+    <section class="pt-32 pb-24 min-h-screen relative z-10">
+        <div class="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob"></div>
+        <div class="absolute top-0 -right-4 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob animation-delay-2000"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 animate-fade-in-up">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Shop the Collection</h1>
+                <p class="text-slate-400">Discover our latest arrivals. Sustainably made, perfectly tailored for the modern wardrobe.</p>
+            </div>
+
+            <!-- Category Filters -->
+            <div class="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-up" style="animation-delay: 0.1s;">
+                <button class="filter-btn px-6 py-2 rounded-full bg-indigo-600 text-white text-sm font-medium transition-all" data-filter="all">All</button>
+                <button class="filter-btn px-6 py-2 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-sm font-medium transition-all" data-filter="T-Shirt">T-Shirt</button>
+                <button class="filter-btn px-6 py-2 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-sm font-medium transition-all" data-filter="Oversized">Oversized</button>
+                <button class="filter-btn px-6 py-2 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-sm font-medium transition-all" data-filter="Pants">Pants</button>
+                <button class="filter-btn px-6 py-2 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white text-sm font-medium transition-all" data-filter="Other">Other</button>
+            </div>
+
+            <div id="store-products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto animate-fade-in-up" style="animation-delay: 0.2s;">
+                <!-- Dynamically populated from products inventory; items with stock = 0 are marked unavailable -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Details Modal -->
+    <div id="details-overlay" class="fixed inset-0 bg-black/60 z-[75] hidden backdrop-blur-sm transition-opacity"></div>
+    <div id="details-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl p-4 z-[80] hidden">
+        <div class="glass-card rounded-2xl shadow-2xl overflow-hidden relative animate-fade-in-up" style="animation-duration: 0.5s;">
+            <button id="close-details" class="absolute top-4 right-4 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full z-20 transition-colors backdrop-blur-sm">
+                <i class="ph-bold ph-x text-xl"></i>
+            </button>
+            <div id="details-content" class="grid grid-cols-1 md:grid-cols-2"></div>
+        </div>
+    </div>
+
+    <!-- Selection Modal -->
+    <div id="selection-overlay" class="fixed inset-0 bg-black/60 z-[85] hidden backdrop-blur-sm transition-opacity"></div>
+    <div id="selection-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl p-4 z-[90] hidden">
+        <div class="glass-card rounded-2xl shadow-2xl overflow-hidden relative animate-fade-in-up" style="animation-duration: 0.3s;">
+            <button id="close-selection" class="absolute top-4 right-4 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full z-20 transition-colors backdrop-blur-sm">
+                <i class="ph-bold ph-x text-xl"></i>
+            </button>
+            <div id="selection-content" class="p-6"></div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-full sm:w-96 bg-slate-900/95 backdrop-blur-xl border-l border-white/10 transform translate-x-full transition-transform duration-300 z-[60] shadow-2xl">
+        <div class="flex flex-col h-full">
+            <div class="flex justify-between items-center p-6 border-b border-white/5">
+                <h2 class="text-xl font-bold">Your Cart</h2>
+                <button id="close-cart" class="text-slate-400 hover:text-white"><i class="ph ph-x text-2xl"></i></button>
+            </div>
+            <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4"></div>
+            <div class="p-6 border-t border-white/5 bg-slate-900/50">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-slate-400">Total</span>
+                    <span id="cart-total" class="text-xl font-bold text-white"><span class="text-sm">LKR</span> 0.00</span>
+                </div>
+                <button onclick="checkout()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium transition-colors">Checkout</button>
+            </div>
+        </div>
+    </div>
+    <div id="cart-overlay" class="fixed inset-0 bg-black/50 z-[55] hidden backdrop-blur-sm transition-opacity"></div>
+
+    <!-- Footer -->
+    <footer class="pt-20 pb-10 border-t border-white/5 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-12">
+                <div class="flex items-center gap-2 mb-6 md:mb-0">
+                    <img src="logo white.png" alt="Enivo Logo" class="h-20 w-20 object-contain" />
+                    <span class="text-l font-light tracking-tight">Wear The Evolution<span class="text-indigo-500 font-bold">.</span></span>
+                </div>
+                <div class="flex space-x-6 text-slate-400">
+                    <a href="#" class="hover:text-white transition-colors"><i class="ph-fill ph-youtube-logo text-2xl"></i></a>
+                    <a href="https://www.instagram.com/enivo.clothings" class="hover:text-white transition-colors"><i class="ph-fill ph-instagram-logo text-2xl"></i></a>
+                    <a href="#" class="hover:text-white transition-colors"><i class="ph-fill ph-tiktok-logo text-2xl"></i></a>
+                </div>
+            </div>
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-sm text-slate-500">
+                <p>&copy; 2026 Enivo Apparel. All rights reserved.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="about.html#privacy-terms" class="hover:text-slate-300">Privacy Policy</a>
+                    <a href="about.html#privacy-terms" class="hover:text-slate-300">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileBtn.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+
+            // Cart Logic
+            const cartBtnDesktop = document.getElementById('cart-btn-desktop');
+            const cartBtnMobile = document.getElementById('cart-btn-mobile');
+            const closeCartBtn = document.getElementById('close-cart');
+            const cartOverlay = document.getElementById('cart-overlay');
+
+            if(cartBtnDesktop) cartBtnDesktop.addEventListener('click', openCart);
+            if(cartBtnMobile) cartBtnMobile.addEventListener('click', openCart);
+            if(closeCartBtn) closeCartBtn.addEventListener('click', closeCart);
+            if(cartOverlay) cartOverlay.addEventListener('click', closeCart);
+            
+            loadCart();
+
+            // Render Products from Admin/Store Inventory
+            renderStoreProducts();
+
+            // Details Modal Logic
+            const closeDetailsBtn = document.getElementById('close-details');
+            const detailsOverlay = document.getElementById('details-overlay');
+            if(closeDetailsBtn) closeDetailsBtn.addEventListener('click', closeDetailsModal);
+            if(detailsOverlay) detailsOverlay.addEventListener('click', closeDetailsModal);
+
+            // Selection Modal Logic
+            const closeSelectionBtn = document.getElementById('close-selection');
+            const selectionOverlay = document.getElementById('selection-overlay');
+            if(closeSelectionBtn) closeSelectionBtn.addEventListener('click', closeSelectionModal);
+            if(selectionOverlay) selectionOverlay.addEventListener('click', closeSelectionModal);
+
+            // Category Filter Logic
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => {
+                        b.classList.remove('bg-indigo-600', 'text-white');
+                        b.classList.add('bg-slate-800', 'text-slate-300');
+                    });
+                    btn.classList.remove('bg-slate-800', 'text-slate-300');
+                    btn.classList.add('bg-indigo-600', 'text-white');
+
+                    const filterValue = btn.getAttribute('data-filter');
+                    const productCards = document.querySelectorAll('.product-card');
+                    productCards.forEach(product => {
+                        if (filterValue === 'all' || product.getAttribute('data-category') === filterValue) {
+                            product.style.display = 'flex';
+                        } else {
+                            product.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+
+        const STORAGE_KEY = 'enivo_store_products';
+        const DEFAULT_STORE_PRODUCTS = [
+            {
+                id: 'prod_1',
+                name: '210(GSM) Printed T shirt',
+                price: 2499,
+                image: 'ads2.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Black Only',
+                description: 'Premium 210 GSM printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 15
+            },
+            {
+                id: 'prod_2',
+                name: '210(GSM) Miles Morales Spider Man T shirt',
+                price: 2499,
+                image: 'ads3.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Black Only',
+                description: 'Premium 210 GSM Miles Morales Spider Man printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 20
+            },
+            {
+                id: 'prod_3',
+                name: '210(GSM) John Wick T shirt',
+                price: 2499,
+                image: 'ads4.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Red Only',
+                description: 'Premium 210 GSM John Wick printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 12
+            },
+            {
+                id: 'prod_4',
+                name: '210(GSM) Bugatti T shirt',
+                price: 2499,
+                image: 'ads5.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'White Only',
+                description: 'Premium 210 GSM Bugatti printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 8
+            },
+            {
+                id: 'prod_5',
+                name: '210GSM Printed T-Shirt',
+                price: 2499,
+                image: 'ads1.png',
+                category: 'T-Shirt',
+                sizes: 'S, M, L',
+                colors: 'White, Black',
+                description: 'A 210GSM cotton DTF printed t-shirt designed for comfort and durability. Made from premium 100% cotton with a thicker feel and breathable comfort.',
+                quantity: 25
+            },
+            {
+                id: 'prod_6',
+                name: '210(GSM) Demon Slayer Inosuke T shirt',
+                price: 2499,
+                image: 'ads6.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Grey Only',
+                description: 'Premium 210 GSM Demon Slayer Inosuke printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 18
+            },
+            {
+                id: 'prod_7',
+                name: '210(GSM) Yamaha YZF-R6 T shirt',
+                price: 2499,
+                image: 'ads7.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Black Only',
+                description: 'Premium 210 GSM Yamaha YZF-R6 printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 5
+            },
+            {
+                id: 'prod_8',
+                name: '210(GSM) Harley Davidson FXDR T shirt',
+                price: 2499,
+                image: 'ads8.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Black Only',
+                description: 'Premium 210 GSM Harley Davidson FXDR printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 10
+            }
+        ];
+
+        function getStoreProducts() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_STORE_PRODUCTS));
+                return DEFAULT_STORE_PRODUCTS;
+            }
+            try {
+                return JSON.parse(raw);
+            } catch (e) {
+                return DEFAULT_STORE_PRODUCTS;
+            }
+        }
+
+        function escapeQuotes(str) {
+            return (str || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        function renderStoreProducts() {
+            const container = document.getElementById('store-products-grid');
+            if (!container) return;
+
+            const products = getStoreProducts();
+            if (products.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center text-slate-500 py-16">No products available at the moment.</div>`;
+                return;
+            }
+
+            container.innerHTML = products.map(item => {
+                const qty = Number(item.quantity) || 0;
+                const isAvailable = qty > 0;
+                const safeName = escapeQuotes(item.name);
+                const safeDesc = escapeQuotes(item.description);
+                const safeSizes = escapeQuotes(item.sizes || 'XS, S, M, L, XL, 2XL');
+                const safeColors = escapeQuotes(item.colors || 'Standard');
+                const safeImg = escapeQuotes(item.image || 'ads1.png');
+
+                const quickAddBtn = isAvailable
+                    ? `<button onclick="addToCart('${safeName}', ${item.price}, '${safeImg}', '${safeSizes}', '${safeColors}')" 
+                           class="bg-white text-slate-900 px-6 py-2 rounded-full font-medium transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:bg-indigo-50 flex items-center gap-2">
+                           <i class="ph-bold ph-shopping-bag"></i> Quick Add
+                       </button>`
+                    : `<span class="bg-rose-600/90 text-white px-5 py-2 rounded-full font-semibold text-xs tracking-wider uppercase shadow-lg backdrop-blur-sm flex items-center gap-1.5">
+                           <i class="ph-bold ph-prohibit"></i> Out of Stock
+                       </span>`;
+
+                const unavailableBadge = !isAvailable 
+                    ? `<div class="absolute top-3 left-3 z-10 bg-rose-600 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-lg">
+                         Unavailable
+                       </div>`
+                    : '';
+
+                const detailsBtn = isAvailable
+                    ? `<button onclick="openDetailsModal('${safeName}', ${item.price}, '${safeImg}', '${safeSizes}', '${safeColors}', '${safeDesc}')" 
+                           class="mt-auto w-full text-center bg-white/5 hover:bg-white/10 text-indigo-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                           View Details
+                       </button>`
+                    : `<button disabled class="mt-auto w-full text-center bg-slate-800/50 text-slate-500 cursor-not-allowed px-4 py-2 rounded-lg text-sm font-medium">
+                           Currently Unavailable
+                       </button>`;
+
+                return `
+                    <div class="glass-card rounded-2xl p-4 flex flex-col group border border-white/5 ${isAvailable ? 'hover:border-indigo-500/50' : 'opacity-70'} transition-colors duration-300 product-card" data-category="${item.category || 'Other'}">
+                        <div class="relative overflow-hidden rounded-xl mb-4 aspect-[4/5] bg-slate-800">
+                            ${unavailableBadge}
+                            <img src="${item.image}" alt="${item.name}" onerror="this.src='logo white.png'" class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 ${isAvailable ? 'group-hover:scale-110' : 'grayscale-[40%]'}" />
+                            <div class="absolute inset-0 bg-slate-900/40 ${isAvailable ? 'opacity-0 group-hover:opacity-100' : 'opacity-100 bg-slate-950/50'} transition-opacity duration-300 flex items-center justify-center">
+                                ${quickAddBtn}
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="text-base font-medium text-slate-200 truncate pr-2">${item.name}</h3>
+                            <span class="text-xl text-yellow-400 font-bold whitespace-nowrap">
+                                <span class="text-sm">LKR</span> ${item.price}
+                            </span>
+                        </div>
+                        <p class="text-sm text-slate-400 mb-4">${item.colors || ''} ${item.sizes ? '/ ' + item.sizes : ''}</p>
+                        ${detailsBtn}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        let cart = [];
+
+        function getCartKey() {
+            const isLoggedIn = localStorage.getItem('enivo_logged_in') === 'true';
+            const email = localStorage.getItem('enivo_user_email');
+            return (isLoggedIn && email) ? `enivo_cart_${email}` : 'enivo_cart';
+        }
+
+        function loadCart() {
+            const saved = localStorage.getItem(getCartKey());
+            if (saved) cart = JSON.parse(saved);
+            else cart = [];
+            updateCartUI();
+        }
+
+        function saveCart() {
+            localStorage.setItem(getCartKey(), JSON.stringify(cart));
+        }
+
+        function addToCart(name, price, image, sizes, colors) {
+            // Open selection modal
+            const modal = document.getElementById('selection-modal');
+            const content = document.getElementById('selection-content');
+            
+            // Parse sizes and colors
+            const sizeList = sizes.split(',').map(s => s.trim());
+            const colorList = colors.split(',').map(c => c.trim());
+            
+            // Generate HTML for selectors
+            let sizeHtml = '<div class="mb-4"><label class="block text-sm text-slate-400 mb-2">Select Size</label><div class="flex flex-wrap gap-2">';
+            sizeList.forEach(size => {
+                sizeHtml += `<label class="cursor-pointer"><input type="radio" name="size" value="${size}" class="peer sr-only"><span class="px-3 py-1 bg-slate-800 border border-white/10 rounded-md peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 text-slate-300 text-sm transition-all hover:bg-slate-700">${size}</span></label>`;
+            });
+            sizeHtml += '</div></div>';
+            
+            let colorHtml = '<div class="mb-6"><label class="block text-sm text-slate-400 mb-2">Select Color</label><div class="flex flex-wrap gap-2">';
+            colorList.forEach(color => {
+                colorHtml += `<label class="cursor-pointer"><input type="radio" name="color" value="${color}" class="peer sr-only"><span class="px-3 py-1 bg-slate-800 border border-white/10 rounded-md peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 text-slate-300 text-sm transition-all hover:bg-slate-700">${color}</span></label>`;
+            });
+            colorHtml += '</div></div>';
+
+            content.innerHTML = `
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="w-full md:w-1/3 aspect-square bg-slate-800 rounded-lg overflow-hidden">
+                        <img src="${image}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-white mb-1">${name}</h3>
+                        <p class="text-lg text-yellow-400 font-bold mb-4"><span class="text-sm">LKR</span> ${price.toFixed(2)}</p>
+                        
+                        ${sizeHtml}
+                        ${colorHtml}
+                        
+                        <button onclick="confirmAddToCart('${name}', ${price}, '${image}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition-colors">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('selection-overlay').classList.remove('hidden');
+            modal.classList.remove('hidden');
+        }
+
+        function confirmAddToCart(name, price, image) {
+            const size = document.querySelector('input[name="size"]:checked')?.value;
+            const color = document.querySelector('input[name="color"]:checked')?.value;
+            
+            if (!size || !color) {
+                alert('Please select both size and color.');
+                return;
+            }
+            
+            // Add to cart logic with variants
+            const existingItem = cart.find(item => item.name === name && item.size === size && item.color === color);
+            if (existingItem) existingItem.quantity += 1;
+            else cart.push({ name, price, image, quantity: 1, size, color });
+            
+            saveCart();
+            updateCartUI();
+            closeSelectionModal();
+            openCart();
+        }
+
+        function removeFromCart(name, size, color) {
+            cart = cart.filter(item => !(item.name === name && item.size === size && item.color === color));
+            saveCart();
+            updateCartUI();
+        }
+
+        function updateQuantity(name, size, color, change) {
+            const item = cart.find(item => item.name === name && item.size === size && item.color === color);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) removeFromCart(name, size, color);
+                else {
+                    saveCart();
+                    updateCartUI();
+                }
+            }
+        }
+
+        function updateCartUI() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            const cartCounts = document.querySelectorAll('.cart-count');
+            const cartTotal = document.getElementById('cart-total');
+            
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCounts.forEach(el => {
+                el.innerText = totalItems;
+                if (totalItems > 0) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            cartTotal.innerHTML = '<span class="text-sm">LKR</span> ' + total.toFixed(2);
+
+            cartItemsContainer.innerHTML = '';
+            if (cart.length === 0) {
+                cartItemsContainer.innerHTML = '<p class="text-slate-500 text-center mt-10">Your cart is empty.</p>';
+                return;
+            }
+
+            cart.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'flex gap-4 bg-slate-800/50 p-3 rounded-lg border border-white/5';
+                itemEl.innerHTML = `
+                    <img src="${item.image}" class="w-16 h-16 object-cover rounded-md" />
+                    <div class="flex-1">
+                        <h4 class="text-sm font-medium text-white">${item.name}</h4>
+                        <p class="text-xs text-slate-400"><span class="text-[10px]">LKR</span> ${item.price}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">${item.size} / ${item.color}</p>
+                        <div class="flex items-center gap-3 mt-2">
+                            <button onclick="updateQuantity('${item.name}', '${item.size}', '${item.color}', -1)" class="text-slate-400 hover:text-white"><i class="ph-bold ph-minus"></i></button>
+                            <span class="text-xs font-medium">${item.quantity}</span>
+                            <button onclick="updateQuantity('${item.name}', '${item.size}', '${item.color}', 1)" class="text-slate-400 hover:text-white"><i class="ph-bold ph-plus"></i></button>
+                        </div>
+                    </div>
+                    <button onclick="removeFromCart('${item.name}', '${item.size}', '${item.color}')" class="text-slate-500 hover:text-red-400 self-start"><i class="ph-bold ph-trash"></i></button>
+                `;
+                cartItemsContainer.appendChild(itemEl);
+            });
+        }
+
+        function openCart() {
+            document.getElementById('cart-sidebar').classList.remove('translate-x-full');
+            document.getElementById('cart-overlay').classList.remove('hidden');
+        }
+
+        function closeCart() {
+            document.getElementById('cart-sidebar').classList.add('translate-x-full');
+            document.getElementById('cart-overlay').classList.add('hidden');
+        }
+
+        function checkout() {
+            if(cart.length === 0) return;
+            alert('Thank you for your purchase! This is a demo checkout.');
+            cart = [];
+            saveCart();
+            updateCartUI();
+            closeCart();
+        }
+
+        function openDetailsModal(name, price, image, sizes, colors, description) {
+            const modal = document.getElementById('details-modal');
+            const overlay = document.getElementById('details-overlay');
+            const content = document.getElementById('details-content');
+
+            content.innerHTML = `
+                <div class="relative aspect-video md:aspect-[4/5] bg-slate-800">
+                    <img src="${image}" alt="${name}" class="absolute inset-0 w-full h-full object-cover">
+                </div>
+                <div class="flex flex-col p-6 md:p-8">
+                    <h2 class="text-2xl lg:text-3xl font-bold text-white mb-2">${name}</h2>
+                    <p class="text-xl lg:text-2xl font-semibold text-yellow-400 mb-4"><span class="text-base lg:text-lg">LKR</span> ${price.toFixed(2)}</p>
+                    <div class="flex-grow overflow-y-auto max-h-32 md:max-h-48 pr-2 text-slate-300 text-sm leading-relaxed">
+                        <p>${description}</p>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-4 mb-6">Available sizes: <span class="font-medium text-slate-200">${sizes}</span></p>
+                    <div class="mt-auto pt-4 border-t border-white/10">
+                        <button onclick="addToCart('${name}', ${price}, '${image}', '${sizes}', '${colors}')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                            <i class="ph-bold ph-shopping-bag"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            overlay.classList.remove('hidden');
+        }
+
+        function closeDetailsModal() {
+            const modal = document.getElementById('details-modal');
+            const overlay = document.getElementById('details-overlay');
+            modal.classList.add('hidden');
+            overlay.classList.add('hidden');
+        }
+
+        function closeSelectionModal() {
+            const modal = document.getElementById('selection-modal');
+            const overlay = document.getElementById('selection-overlay');
+            modal.classList.add('hidden');
+            overlay.classList.add('hidden');
+        }
+    </script>
+
+    <!-- Chat Widget -->
+    <div id="chat-widget" class="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
+        <!-- Chat Window -->
+        <div id="chat-window" class="hidden mb-4 w-[calc(100vw-3rem)] sm:w-[350px] h-[450px] glass-card rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-white/10 transition-all duration-300 transform origin-bottom-right">
+            <!-- Header -->
+            <div class="p-4 border-b border-white/10 bg-slate-800/50 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="ph-fill ph-robot text-indigo-400 text-xl"></i>
+                    <h3 class="font-bold text-white text-sm">Enivo Assistant</h3>
+                </div>
+                <button id="close-chat" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+            
+            <!-- Messages Area -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900/50 flex flex-col scroll-smooth">
+                <!-- Initial greeting -->
+                <div class="flex items-start gap-2">
+                    <div class="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                        <i class="ph-fill ph-robot"></i>
+                    </div>
+                    <div class="bg-slate-800 border border-white/5 rounded-2xl rounded-tl-none px-4 py-2 text-sm text-slate-200">
+                        Hi there! I'm the Enivo Assistant. How can I help you today?
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="p-3 border-t border-white/10 bg-slate-800/50">
+                <form id="chat-form" class="flex gap-2">
+                    <input type="text" id="chat-input" class="flex-1 bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors" placeholder="Type your message..." autocomplete="off">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white w-10 h-10 rounded-xl flex items-center justify-center transition-colors shrink-0">
+                        <i class="ph-bold ph-paper-plane-right"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Toggle Button -->
+        <button id="chat-toggle" class="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-[0_0_20px_-3px_rgba(79,70,229,0.5)] flex items-center justify-center transition-transform hover:scale-110 z-50">
+            <i class="ph-fill ph-chat-teardrop-dots text-3xl"></i>
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatToggle = document.getElementById('chat-toggle');
+            const chatWindow = document.getElementById('chat-window');
+            const closeChat = document.getElementById('close-chat');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatMessages = document.getElementById('chat-messages');
+
+            let chatMemory = [{
+                role: "system",
+                content: "You are an ecommerce assistant in a clothing shop named Enivo. Answer politely. If a product is not found, say so politely. Contact Details(phone = +94 707 606 555, email = enivo.clothing@gmail.com, Address/shop=not yet have one looking forward to open but delivering to any where in sri lanka). Do not take payment or personal information. Always say 'Please visit our website to complete your purchase!' at the end of your response."
+            }];
+
+            const toggleChat = () => {
+                chatWindow.classList.toggle('hidden');
+                if (!chatWindow.classList.contains('hidden')) chatInput.focus();
+            };
+
+            if (chatToggle) chatToggle.addEventListener('click', toggleChat);
+            if (closeChat) closeChat.addEventListener('click', toggleChat);
+
+            const appendMessage = (content, isUser = false) => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'flex items-start gap-2 ' + (isUser ? 'flex-row-reverse' : '');
+                msgDiv.innerHTML = `
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${isUser ? 'bg-slate-700 text-white' : 'bg-indigo-500/20 text-indigo-400'}">
+                        ${isUser ? '<i class="ph-fill ph-user"></i>' : '<i class="ph-fill ph-robot"></i>'}
+                    </div>
+                    <div class="px-4 py-2 text-sm text-slate-200 max-w-[85%] break-words border border-white/5 ${isUser ? 'bg-indigo-600 rounded-2xl rounded-tr-none' : 'bg-slate-800 rounded-2xl rounded-tl-none'}">
+                        ${content}
+                    </div>
+                `;
+                chatMessages.appendChild(msgDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+
+            const showTyping = () => {
+                const msgDiv = document.createElement('div');
+                msgDiv.id = 'typing-indicator';
+                msgDiv.className = 'flex items-start gap-2';
+                msgDiv.innerHTML = `<div class="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0"><i class="ph-fill ph-robot"></i></div><div class="bg-slate-800 border border-white/5 rounded-2xl rounded-tl-none px-4 py-3 text-sm flex gap-1 items-center"><div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></div><div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div><div class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div></div>`;
+                chatMessages.appendChild(msgDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+
+            if (chatForm) {
+                chatForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const message = chatInput.value.trim();
+                    if (!message) return;
+
+                    appendMessage(message, true);
+                    chatInput.value = '';
+                    chatMemory.push({ role: "user", content: message });
+                    showTyping();
+
+                    let botReply = null;
+                    // Attempt 1: chat.php backend
+                    try {
+                        const response = await fetch('chat.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ messages: chatMemory })
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data.choices && data.choices[0]?.message?.content) {
+                                botReply = data.choices[0].message.content;
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Backend chat.php unreachable, using direct fallback');
+                    }
+
+                    // Attempt 2: Direct Groq API call if PHP backend didn't respond
+                    if (!botReply) {
+                        try {
+                            const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': 'Bearer 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',
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    model: 'openai/gpt-oss-20b',
+                                    messages: chatMemory,
+                                    temperature: 0.3
+                                })
+                            });
+                            if (groqRes.ok) {
+                                const gData = await groqRes.json();
+                                if (gData.choices && gData.choices[0]?.message?.content) {
+                                    botReply = gData.choices[0].message.content;
+                                }
+                            }
+                        } catch(e) {
+                            console.warn('Direct Groq call failed');
+                        }
+                    }
+
+                    // Attempt 3: Helpful local fallback
+                    if (!botReply) {
+                        botReply = "Hello! Welcome to Envio Apparel. We offer high-quality 210 GSM printed tees across Sri Lanka. For immediate support, WhatsApp/Call +94 707 606 555 or email enivo.clothing@gmail.com. Please visit our website to complete your purchase!";
+                    }
+
+                    document.getElementById('typing-indicator')?.remove();
+                    appendMessage(botReply, false);
+                    chatMemory.push({ role: "assistant", content: botReply });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
