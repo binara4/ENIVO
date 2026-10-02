@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Enivo Management</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        /* =========================================================
+           STATIC ADMIN CREDENTIAL CONFIGURATION
+           Only accessible by typing directly in the URL: admin.html
+           ========================================================= */
+        const ADMIN_USERNAME = "admin";
+        const ADMIN_PASSWORD = "password123";
+        const SESSION_AUTH_KEY = "enivo_admin_session_auth";
+        const STORAGE_KEY = "enivo_store_products";
+        const ORDERS_STORAGE_KEY = "enivo_store_orders";
+
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        };
+
+        // Helper functions for UI
+        function fillAdminCredentials() {
+            const u = document.getElementById('admin-user-input');
+            const p = document.getElementById('admin-pass-input');
+            if (u) u.value = ADMIN_USERNAME;
+            if (p) p.value = ADMIN_PASSWORD;
+            const errDiv = document.getElementById('login-error');
+            if (errDiv) errDiv.classList.add('hidden');
+        }
+
+        function togglePasswordVisibility() {
+            const p = document.getElementById('admin-pass-input');
+            const icon = document.getElementById('eye-icon');
+            if (!p) return;
+            if (p.type === 'password') {
+                p.type = 'text';
+                if (icon) icon.className = 'ph ph-eye-slash';
+            } else {
+                p.type = 'password';
+                if (icon) icon.className = 'ph ph-eye';
+            }
+        }
+
+        // Multi-layer Authentication Storage
+        let inMemoryAuth = false;
+        function setAdminAuthenticated(val) {
+            inMemoryAuth = !!val;
+            try { sessionStorage.setItem(SESSION_AUTH_KEY, val ? 'true' : 'false'); } catch(e){}
+            try { localStorage.setItem(SESSION_AUTH_KEY, val ? 'true' : 'false'); } catch(e){}
+        }
+
+        function isAdminAuthenticated() {
+            if (inMemoryAuth) return true;
+            try {
+                if (sessionStorage.getItem(SESSION_AUTH_KEY) === 'true') return true;
+            } catch(e){}
+            try {
+                if (localStorage.getItem(SESSION_AUTH_KEY) === 'true') return true;
+            } catch(e){}
+            return false;
+        }
+
+        // Authentication Verification
+        function checkAdminSession() {
+            const isAuth = isAdminAuthenticated();
+            const loginView = document.getElementById('login-view');
+            const dashView = document.getElementById('dashboard-view');
+
+            if (isAuth) {
+                if (loginView) {
+                    loginView.classList.add('hidden');
+                    loginView.style.setProperty('display', 'none', 'important');
+                }
+                if (dashView) {
+                    dashView.classList.remove('hidden');
+                    dashView.style.setProperty('display', 'flex', 'important');
+                }
+                if (typeof renderInventoryTable === 'function') renderInventoryTable();
+                if (typeof fetchPaymentsHistory === 'function') fetchPaymentsHistory();
+            } else {
+                if (loginView) {
+                    loginView.classList.remove('hidden');
+                    loginView.style.setProperty('display', 'flex', 'important');
+                }
+                if (dashView) {
+                    dashView.classList.add('hidden');
+                    dashView.style.setProperty('display', 'none', 'important');
+                }
+            }
+        }
+
+        async function handleAdminLogin(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            if (e && e.stopPropagation) e.stopPropagation();
+
+            const uInput = (document.getElementById('admin-user-input')?.value || '').trim();
+            const pInput = (document.getElementById('admin-pass-input')?.value || '').trim();
+            const errDiv = document.getElementById('login-error');
+            const btn = document.getElementById('admin-login-btn');
+
+            if (!uInput || !pInput) {
+                if (errDiv) {
+                    errDiv.textContent = 'Please enter both username and password.';
+                    errDiv.classList.remove('hidden');
+                }
+                return false;
+            }
+
+            // Check 1: Static Admin Credentials (case-insensitive username)
+            if (uInput.toLowerCase() === ADMIN_USERNAME.toLowerCase() && pInput === ADMIN_PASSWORD) {
+                setAdminAuthenticated(true);
+                if (errDiv) errDiv.classList.add('hidden');
+                checkAdminSession();
+                return false;
+            }
+
+            // Check 2: Supabase Auth fallback (if email/password was entered)
+            if (window.supabaseClient && uInput.includes('@')) {
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="ph-bold ph-spinner animate-spin"></i> Checking credentials...';
+                }
+                try {
+                    const { data, error } = await window.supabaseClient.auth.signInWithPassword({
+                        email: uInput,
+                        password: pInput
+                    });
+                    if (!error && data?.user) {
+                        setAdminAuthenticated(true);
+                        if (errDiv) errDiv.classList.add('hidden');
+                        checkAdminSession();
+                        return false;
+                    }
+                } catch (err) {
+                    console.warn('Supabase auth error:', err);
+                } finally {
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="ph-bold ph-sign-in text-base"></i> Authenticate & Enter';
+                    }
+                }
+            }
+
+            // If neither matched
+            if (errDiv) {
+                errDiv.textContent = 'Invalid credentials. Default: admin / password123';
+                errDiv.classList.remove('hidden');
+            }
+            return false;
+        }
+
+        function handleAdminLogout() {
+            setAdminAuthenticated(false);
+            try { sessionStorage.removeItem(SESSION_AUTH_KEY); } catch(e){}
+            try { localStorage.removeItem(SESSION_AUTH_KEY); } catch(e){}
+            checkAdminSession();
+        }
+    </script>
+    <style>
+        /* Base Reset & Fallback */
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background-color: #0f172a !important;
+            color: #f8fafc !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .hidden { display: none !important; }
+        .glass-nav {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-50 antialiased min-h-screen selection:bg-indigo-500 selection:text-white flex flex-col">
+
+    <!-- LOGIN SCREEN OVERLAY -->
+    <div id="login-view" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-xl px-4">
+        <div class="glass-card max-w-md w-full p-8 rounded-3xl shadow-2xl border border-white/10 relative overflow-hidden">
+            <div class="absolute -top-16 -right-16 w-36 h-36 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600/20 text-indigo-400 mb-4 border border-indigo-500/30">
+                    <i class="ph-bold ph-shield-check text-3xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">Admin Portal</h1>
+                <p class="text-xs text-slate-400 mt-1">Direct URL access verification</p>
+            </div>
+
+            <form id="login-form" class="space-y-4" onsubmit="event.preventDefault(); handleAdminLogin(event); return false;">
+                <div id="login-error" class="hidden p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center font-medium"></div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Username / Email</label>
+                        <button type="button" onclick="fillAdminCredentials()" class="text-[11px] text-indigo-400 hover:text-indigo-300 font-medium underline">
+                            Auto-Fill Demo
+                        </button>
+                    </div>
+                    <div class="relative">
+                        <i class="ph ph-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                        <input type="text" id="admin-user-input" required autocomplete="off" placeholder="Username (admin) or admin email"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault(); handleAdminLogin(event);}"
+                            class="w-full bg-slate-900/80 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Password</label>
+                    <div class="relative">
+                        <i class="ph ph-lock-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></i>
+                        <input type="password" id="admin-pass-input" required autocomplete="off" placeholder="Enter password (default: password123)"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault(); handleAdminLogin(event);}"
+                            class="w-full bg-slate-900/80 border border-white/10 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                        <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-base">
+                            <i id="eye-icon" class="ph ph-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-[11px] text-slate-300 flex items-center justify-between">
+                    <span>Default: <strong class="text-indigo-300 font-mono">admin</strong> / <strong class="text-indigo-300 font-mono">password123</strong></span>
+                    <button type="button" onclick="fillAdminCredentials()" class="px-2 py-1 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 rounded text-[10px] font-semibold border border-indigo-500/30">
+                        Use Default
+                    </button>
+                </div>
+
+                <button type="button" onclick="handleAdminLogin(event)" id="admin-login-btn" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 mt-2">
+                    <i class="ph-bold ph-sign-in text-base"></i> Authenticate & Enter
+                </button>
+            </form>
+            <div class="mt-6 text-center">
+                <a href="index.html" class="text-xs text-slate-500 hover:text-slate-300 transition-colors inline-flex items-center gap-1">
+                    <i class="ph ph-arrow-left"></i> Return to Storefront
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD CONTENT -->
+    <div id="dashboard-view" class="hidden flex-1 flex flex-col">
+        <!-- Top Navbar -->
+        <header class="glass-nav sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-20">
+                    <div class="flex items-center gap-3">
+                        <img src="logo white.png" alt="Envio" class="h-10 w-10 object-contain" />
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-white tracking-wider text-sm">ENVIO ADMIN</span>
+                                <span class="px-2 py-0.5 text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30">Console</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Inventory & Store Catalog Control</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <!-- Navigation Tabs -->
+                        <div class="flex bg-slate-950/60 p-1 rounded-xl border border-white/10">
+                            <button id="tab-btn-inventory" onclick="switchAdminTab('inventory')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm flex items-center gap-1.5 transition-all">
+                                <i class="ph-bold ph-warehouse"></i> Inventory
+                            </button>
+                            <button id="tab-btn-payments" onclick="switchAdminTab('payments')" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-1.5 transition-all">
+                                <i class="ph-bold ph-receipt"></i> Payment History
+                            </button>
+                        </div>
+
+                        <a href="store.html" target="_blank" class="text-xs text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 px-3.5 py-2 rounded-xl border border-white/10 flex items-center gap-1.5 transition-all">
+                            <i class="ph ph-arrow-square-out text-sm"></i> Preview Store
+                        </a>
+                        <button onclick="handleAdminLogout()" class="text-xs text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 px-3.5 py-2 rounded-xl border border-red-500/30 flex items-center gap-1.5 transition-all">
+                            <i class="ph-bold ph-sign-out text-sm"></i> Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+            <!-- SECTION 1: INVENTORY TAB -->
+            <div id="section-inventory" class="space-y-8">
+                <!-- Stats / Actions Ribbon -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                            <i class="ph-bold ph-t-shirt text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-medium">Total Products</p>
+                            <h4 id="stat-total-products" class="text-2xl font-bold text-white">0</h4>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                            <i class="ph-bold ph-check-circle text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-medium">In Stock (Active)</p>
+                            <h4 id="stat-in-stock" class="text-2xl font-bold text-emerald-400">0</h4>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-rose-500/20 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                            <i class="ph-bold ph-warning-circle text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-medium">Out of Stock</p>
+                            <h4 id="stat-out-of-stock" class="text-2xl font-bold text-rose-400">0</h4>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-medium">Store Catalog</p>
+                            <p class="text-xs text-slate-300 mt-1">Add new apparel items</p>
+                        </div>
+                        <button onclick="openAddItemModal()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 shrink-0">
+                            <i class="ph-bold ph-plus"></i> Add Item
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Items Table Section -->
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="p-5 border-b border-white/10 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="ph-bold ph-warehouse text-indigo-400"></i> Store Items & Stock Inventory
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Edit quantities anytime. Items reaching 0 quantity automatically become unavailable on the store.</p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input type="text" id="search-inventory" oninput="renderInventoryTable()" placeholder="Search items..."
+                                    class="bg-slate-900 border border-white/10 rounded-xl pl-9 pr-4 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <button onclick="resetToDefaults()" title="Reset to original demo catalog" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-white/10 transition-all">
+                                Reset Defaults
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-900/60 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-white/5">
+                                <tr>
+                                    <th class="py-3 px-4">Item</th>
+                                    <th class="py-3 px-4">Category</th>
+                                    <th class="py-3 px-4">Price (LKR)</th>
+                                    <th class="py-3 px-4">Current Stock (Admin Only)</th>
+                                    <th class="py-3 px-4">Store Status</th>
+                                    <th class="py-3 px-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-table-body" class="divide-y divide-white/5 text-slate-200">
+                                <!-- Injected by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: PAYMENT HISTORY TAB -->
+            <div id="section-payments" class="hidden space-y-8">
+                <!-- Payment Stats Ribbon -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                            <i class="ph-bold ph-currency-dollar text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-medium">Total Revenue</p>
+                            <h4 id="stat-total-revenue" class="text-2xl font-bold text-emerald-400">LKR 0.00</h4>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                            <i class="ph-bold ph-shopping-bag-open text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-medium">Total Orders Placed</p>
+                            <h4 id="stat-total-orders" class="text-2xl font-bold text-white">0</h4>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+                            <i class="ph-bold ph-package text-2xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 uppercase font-medium">Units Sold</p>
+                            <h4 id="stat-units-sold" class="text-2xl font-bold text-purple-300">0</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment History Table Section -->
+                <div class="glass-card rounded-2xl overflow-hidden">
+                    <div class="p-5 border-b border-white/10 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                                <i class="ph-bold ph-receipt text-indigo-400"></i> Client Payment & Order History
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Live purchases recorded from the store. Every purchase automatically updates inventory stock.</p>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                <input type="text" id="search-payments" oninput="renderPaymentsTable()" placeholder="Search customer, order, item..."
+                                    class="bg-slate-900 border border-white/10 rounded-xl pl-9 pr-4 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <button onclick="fetchPaymentsHistory()" title="Refresh payment records" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-white/10 flex items-center gap-1.5 transition-all">
+                                <i class="ph-bold ph-arrows-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Payments Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-900/60 text-slate-400 uppercase font-semibold text-[10px] tracking-wider border-b border-white/5">
+                                <tr>
+                                    <th class="py-3 px-4">Order ID & Date</th>
+                                    <th class="py-3 px-4">Client / Customer</th>
+                                    <th class="py-3 px-4">Purchased Items</th>
+                                    <th class="py-3 px-4">Total Amount</th>
+                                    <th class="py-3 px-4">Payment Method</th>
+                                    <th class="py-3 px-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="payments-table-body" class="divide-y divide-white/5 text-slate-200">
+                                <!-- Injected by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- POPUP MODAL: ADD NEW ITEM -->
+    <div id="add-item-modal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="glass-card max-w-xl w-full rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/10 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeAddItemModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-colors">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
+                    <i class="ph-bold ph-plus-circle text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Add New Store Item</h3>
+                    <p class="text-xs text-slate-400">Configure photo, name, price, and private quantity</p>
+                </div>
+            </div>
+
+            <form id="add-item-form" onsubmit="event.preventDefault(); handleCreateItem(event); return false;" class="space-y-4">
+                <!-- Item Photo -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Item Photo *</label>
+                    <div class="space-y-2">
+                        <div class="flex gap-2">
+                            <input type="text" id="item-image-url" placeholder="Enter image URL or select file below (e.g. ads2.png)"
+                                class="flex-1 bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                            <label class="cursor-pointer px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium rounded-xl border border-white/10 flex items-center gap-1.5 transition-colors shrink-0">
+                                <i class="ph-bold ph-upload-simple"></i> Upload
+                                <input type="file" id="item-image-file" accept="image/*" class="hidden" onchange="handleImageFileUpload(event)">
+                            </label>
+                        </div>
+                        <!-- Preview Image Container -->
+                        <div id="image-preview-wrapper" class="hidden flex items-center gap-3 p-2 rounded-xl bg-slate-900/60 border border-white/5">
+                            <img id="image-preview" src="" alt="Preview" class="w-12 h-12 object-cover rounded-lg">
+                            <span class="text-xs text-slate-400 truncate flex-1" id="image-preview-name"></span>
+                            <button type="button" onclick="clearImageSelection()" class="text-xs text-red-400 hover:text-red-300 px-2 py-1"><i class="ph-bold ph-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item Name -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Item Name *</label>
+                    <input type="text" id="item-name" required placeholder="e.g. 210(GSM) Heavyweight Oversized Tee"
+                        class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Price -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Price (LKR) *</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-medium">LKR</span>
+                            <input type="number" step="0.01" min="1" id="item-price" required placeholder="2499"
+                                class="w-full bg-slate-900 border border-white/10 rounded-xl pl-12 pr-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                        </div>
+                    </div>
+
+                    <!-- Quantity (Secret / Internal Only) -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-semibold text-slate-300">Initial Quantity *</label>
+                            <span class="text-[10px] text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20">Secret to public</span>
+                        </div>
+                        <input type="number" min="0" step="1" id="item-quantity" required placeholder="e.g. 25 (0 = Unavailable)"
+                            class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Category -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+                        <select id="item-category" class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                            <option value="T-Shirt">T-Shirt</option>
+                            <option value="Oversized">Oversized</option>
+                            <option value="Pants">Pants</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- Sizes -->
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Sizes (comma-separated)</label>
+                        <input type="text" id="item-sizes" value="XS, S, M, L, XL, 2XL"
+                            class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Colors -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Colors (comma-separated)</label>
+                    <input type="text" id="item-colors" value="Black, White"
+                        class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Description</label>
+                    <textarea id="item-description" rows="2" placeholder="Item description, fabric, and details..."
+                        class="w-full bg-slate-900 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <div class="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
+                    <button type="button" onclick="closeAddItemModal()" class="px-4 py-2 rounded-xl text-slate-400 hover:text-white text-xs">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-1.5">
+                        <i class="ph-bold ph-check"></i> Add to Storefront
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Initial default catalog with internal stock quantity
+        const DEFAULT_PRODUCTS = [
+            {
+                id: 'prod_1',
+                name: '210(GSM) Printed T shirt',
+                price: 2499,
+                image: 'ads2.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Black Only',
+                description: 'Premium 210 GSM printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 15
+            },
+            {
+                id: 'prod_2',
+                name: '210(GSM) Miles Morales Spider Man T shirt',
+                price: 2499,
+                image: 'ads3.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Black Only',
+                description: 'Premium 210 GSM Miles Morales Spider Man printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 20
+            },
+            {
+                id: 'prod_3',
+                name: '210(GSM) John Wick T shirt',
+                price: 2499,
+                image: 'ads4.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Red Only',
+                description: 'Premium 210 GSM John Wick printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 12
+            },
+            {
+                id: 'prod_4',
+                name: '210(GSM) Bugatti T shirt',
+                price: 2499,
+                image: 'ads5.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'White Only',
+                description: 'Premium 210 GSM Bugatti printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 8
+            },
+            {
+                id: 'prod_5',
+                name: '210GSM Printed T-Shirt',
+                price: 2499,
+                image: 'ads1.png',
+                category: 'T-Shirt',
+                sizes: 'S, M, L',
+                colors: 'White, Black',
+                description: 'A 210GSM cotton DTF printed t-shirt designed for comfort and durability. Made from premium 100% cotton with a thicker feel and breathable comfort.',
+                quantity: 25
+            },
+            {
+                id: 'prod_6',
+                name: '210(GSM) Demon Slayer Inosuke T shirt',
+                price: 2499,
+                image: 'ads6.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Grey Only',
+                description: 'Premium 210 GSM Demon Slayer Inosuke printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 18
+            },
+            {
+                id: 'prod_7',
+                name: '210(GSM) Yamaha YZF-R6 T shirt',
+                price: 2499,
+                image: 'ads7.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Black Only',
+                description: 'Premium 210 GSM Yamaha YZF-R6 printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 5
+            },
+            {
+                id: 'prod_8',
+                name: '210(GSM) Harley Davidson FXDR T shirt',
+                price: 2499,
+                image: 'ads8.png',
+                category: 'T-Shirt',
+                sizes: 'XS, S, M, L, XL, 2XL',
+                colors: 'Black Only',
+                description: 'Premium 210 GSM Harley Davidson FXDR printed T-shirt made for durability and comfort. Designed for everyday wear with a modern fit and high-quality fabric.',
+                quantity: 10
+            }
+        ];
+
+        // Supabase Client (Connected to same Supabase project as login/account)
+        const SUPABASE_URL = 'https://gkwlgduowvopjvjjdmdh.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_vcCf3PuoeUzQkwQPivJt5g_VclnRH7B';
+        window.supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+        const supabaseClient = window.supabaseClient;
+
+        let cachedProducts = [];
+
+        // Retrieve inventory from Supabase or localStorage
+        async function getProducts() {
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('products')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (!error && data && data.length > 0) {
+                        cachedProducts = data;
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                        return cachedProducts;
+                    }
+                } catch(err) {
+                    console.warn('Supabase fetch error, fallback to cache', err);
+                }
+            }
+
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PRODUCTS));
+                cachedProducts = DEFAULT_PRODUCTS;
+            } else {
+                try {
+                    cachedProducts = JSON.parse(raw);
+                } catch (e) {
+                    cachedProducts = DEFAULT_PRODUCTS;
+                }
+            }
+            return cachedProducts;
+        }
+
+        async function saveProducts(products) {
+            cachedProducts = products;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+            renderInventoryTable();
+        }
+
+        // Tab Switching
+        let currentTab = 'inventory';
+        function switchAdminTab(tab) {
+            currentTab = tab;
+            const invTabBtn = document.getElementById('tab-btn-inventory');
+            const payTabBtn = document.getElementById('tab-btn-payments');
+            const invSection = document.getElementById('section-inventory');
+            const paySection = document.getElementById('section-payments');
+
+            if (tab === 'inventory') {
+                if (invSection) {
+                    invSection.classList.remove('hidden');
+                    invSection.style.setProperty('display', 'block', 'important');
+                }
+                if (paySection) {
+                    paySection.classList.add('hidden');
+                    paySection.style.setProperty('display', 'none', 'important');
+                }
+                if (invTabBtn) invTabBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm flex items-center gap-1.5 transition-all';
+                if (payTabBtn) payTabBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-1.5 transition-all';
+                renderInventoryTable();
+            } else {
+                if (invSection) {
+                    invSection.classList.add('hidden');
+                    invSection.style.setProperty('display', 'none', 'important');
+                }
+                if (paySection) {
+                    paySection.classList.remove('hidden');
+                    paySection.style.setProperty('display', 'block', 'important');
+                }
+                if (invTabBtn) invTabBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white flex items-center gap-1.5 transition-all';
+                if (payTabBtn) payTabBtn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-sm flex items-center gap-1.5 transition-all';
+                fetchPaymentsHistory();
+            }
+        }
+
+        // Payments / Orders History
+        let cachedOrders = [];
+
+        async function fetchPaymentsHistory() {
+            const tbody = document.getElementById('payments-table-body');
+            if (tbody && tbody.children.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400"><i class="ph-bold ph-spinner animate-spin text-lg mr-2"></i> Loading payment records...</td></tr>`;
+            }
+
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('orders')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (!error && data) {
+                        cachedOrders = data;
+                        localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(data));
+                        renderPaymentsTable();
+                        return;
+                    }
+                } catch (e) {
+                    console.warn('Supabase fetch orders error:', e);
+                }
+            }
+
+            const raw = localStorage.getItem(ORDERS_STORAGE_KEY);
+            if (raw) {
+                try {
+                    cachedOrders = JSON.parse(raw);
+                } catch(e) {
+                    cachedOrders = [];
+                }
+            } else {
+                cachedOrders = [];
+            }
+            renderPaymentsTable();
+        }
+
+        function renderPaymentsTable() {
+            const tbody = document.getElementById('payments-table-body');
+            if (!tbody) return;
+
+            const q = (document.getElementById('search-payments')?.value || '').toLowerCase().trim();
+
+            let totalRev = 0;
+            let totalOrders = cachedOrders.length;
+            let totalUnits = 0;
+
+            cachedOrders.forEach(o => {
+                totalRev += Number(o.total_amount || 0);
+                if (Array.isArray(o.items)) {
+                    o.items.forEach(it => {
+                        totalUnits += Number(it.quantity || 1);
+                    });
+                }
+            });
+
+            // Update stats
+            const statRev = document.getElementById('stat-total-revenue');
+            const statOrders = document.getElementById('stat-total-orders');
+            const statUnits = document.getElementById('stat-units-sold');
+            if (statRev) statRev.textContent = `LKR ${totalRev.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (statOrders) statOrders.textContent = totalOrders.toString();
+            if (statUnits) statUnits.textContent = totalUnits.toString();
+
+            const filtered = cachedOrders.filter(o => {
+                const matchId = (o.id || '').toLowerCase().includes(q);
+                const matchEmail = (o.customer_email || '').toLowerCase().includes(q);
+                const matchName = (o.customer_name || '').toLowerCase().includes(q);
+                let matchItem = false;
+                if (Array.isArray(o.items)) {
+                    matchItem = o.items.some(i => (i.name || '').toLowerCase().includes(q));
+                }
+                return matchId || matchEmail || matchName || matchItem;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-slate-500">
+                            ${cachedOrders.length === 0 ? 'No customer payments recorded yet. Orders will appear here live as purchases happen in the store.' : 'No orders matched your search criteria.'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(order => {
+                const dateStr = order.created_at ? new Date(order.created_at).toLocaleString() : 'Recent';
+                const itemsList = Array.isArray(order.items) ? order.items.map(it => `
+                    <div class="flex items-center justify-between text-xs py-1 border-b border-white/5 last:border-0 gap-2">
+                        <span class="text-slate-200 font-medium">${it.name || 'Item'}</span>
+                        <span class="text-slate-400 whitespace-nowrap">${it.size || ''} &bull; ${it.quantity}x @ LKR ${it.price}</span>
+                    </div>
+                `).join('') : '<span class="text-slate-500">None</span>';
+
+                return `
+                    <tr class="hover:bg-slate-800/40 transition-colors">
+                        <td class="py-3 px-4 align-top">
+                            <span class="font-mono font-semibold text-indigo-400 block">${order.id || 'ORD-UNKNOWN'}</span>
+                            <span class="text-[11px] text-slate-500">${dateStr}</span>
+                        </td>
+                        <td class="py-3 px-4 align-top">
+                            <span class="font-medium text-white block">${order.customer_name || 'Guest Client'}</span>
+                            <span class="text-[11px] text-slate-400">${order.customer_email || 'No email specified'}</span>
+                        </td>
+                        <td class="py-3 px-4 align-top max-w-xs">
+                            <div class="bg-slate-950/40 p-2 rounded-lg border border-white/5 space-y-0.5">
+                                ${itemsList}
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 align-top font-bold text-yellow-400 whitespace-nowrap">
+                            <span class="text-[10px] text-slate-400">LKR</span> ${Number(order.total_amount || 0).toFixed(2)}
+                        </td>
+                        <td class="py-3 px-4 align-top">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 border border-white/10 text-slate-300 text-[11px]">
+                                <i class="ph-bold ph-credit-card text-xs text-indigo-400"></i> ${order.payment_method || 'Online / Card'}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 align-top">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> ${order.payment_status || 'Paid'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+
+        // Render Inventory Table
+        async function renderInventoryTable() {
+            const products = await getProducts();
+            const query = (document.getElementById('search-inventory')?.value || '').toLowerCase().trim();
+            const tbody = document.getElementById('inventory-table-body');
+            if (!tbody) return;
+
+            // Update stats
+            const totalCount = products.length;
+            const inStockCount = products.filter(p => Number(p.quantity) > 0).length;
+            const outOfStockCount = totalCount - inStockCount;
+
+            const elTotal = document.getElementById('stat-total-products');
+            const elInStock = document.getElementById('stat-in-stock');
+            const elOutOfStock = document.getElementById('stat-out-of-stock');
+            if (elTotal) elTotal.textContent = totalCount.toString();
+            if (elInStock) elInStock.textContent = inStockCount.toString();
+            if (elOutOfStock) elOutOfStock.textContent = outOfStockCount.toString();
+
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(query) || 
+                (p.category && p.category.toLowerCase().includes(query))
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-slate-500">
+                            No products found matching your search.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(item => {
+                const qty = Number(item.quantity) || 0;
+                const isAvailable = qty > 0;
+                const statusBadge = isAvailable 
+                    ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Available in Store
+                       </span>`
+                    : `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-rose-500/15 text-rose-300 border border-rose-500/30">
+                         <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span> Unavailable (Out of Stock)
+                       </span>`;
+
+                return `
+                    <tr class="hover:bg-slate-800/40 transition-colors">
+                        <!-- Image & Name -->
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-3">
+                                <img src="${item.image}" alt="${item.name}" onerror="this.src='logo white.png'" class="w-11 h-11 object-cover rounded-lg bg-slate-800 border border-white/5 shrink-0">
+                                <div>
+                                    <div class="font-semibold text-white text-xs max-w-xs truncate">${item.name}</div>
+                                    <div class="text-[11px] text-slate-400 truncate">${item.colors || 'Standard'} &bull; ${item.sizes || 'All Sizes'}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Category -->
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-white/10 text-slate-300 text-[11px]">
+                                ${item.category || 'General'}
+                            </span>
+                        </td>
+
+                        <!-- Price -->
+                        <td class="py-3 px-4 font-semibold text-yellow-400">
+                            <span class="text-[10px] text-slate-400">LKR</span> ${Number(item.price).toFixed(2)}
+                        </td>
+
+                        <!-- Stock Controls -->
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-2">
+                                <button onclick="adjustStock('${item.id}', -1)" title="Decrease stock" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center border border-white/10">
+                                    <i class="ph-bold ph-minus text-xs"></i>
+                                </button>
+                                <input type="number" min="0" value="${qty}" onchange="setStock('${item.id}', this.value)"
+                                    class="w-16 bg-slate-900 border border-white/15 rounded-lg px-2 py-1 text-center font-bold text-xs ${qty === 0 ? 'text-rose-400 border-rose-500/50' : 'text-emerald-400'} focus:outline-none focus:border-indigo-500">
+                                <button onclick="adjustStock('${item.id}', 1)" title="Increase stock" class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center border border-white/10">
+                                    <i class="ph-bold ph-plus text-xs"></i>
+                                </button>
+                            </div>
+                        </td>
+
+                        <!-- Storefront Status -->
+                        <td class="py-3 px-4">
+                            ${statusBadge}
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="py-3 px-4 text-right">
+                            <button onclick="deleteProduct('${item.id}')" title="Delete product" class="text-slate-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
+                                <i class="ph-bold ph-trash text-base"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Adjust Stock
+        async function adjustStock(id, delta) {
+            const products = await getProducts();
+            const item = products.find(p => p.id === id);
+            if (item) {
+                const newQuantity = Math.max(0, (Number(item.quantity) || 0) + delta);
+                item.quantity = newQuantity;
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient
+                            .from('products')
+                            .update({ quantity: newQuantity })
+                            .eq('id', id);
+                    } catch (e) {
+                        console.warn('Supabase stock update error:', e);
+                    }
+                }
+                saveProducts(products);
+            }
+        }
+
+        async function setStock(id, newQty) {
+            const products = await getProducts();
+            const item = products.find(p => p.id === id);
+            if (item) {
+                const parsed = parseInt(newQty, 10);
+                const finalQty = isNaN(parsed) || parsed < 0 ? 0 : parsed;
+                item.quantity = finalQty;
+                if (supabaseClient) {
+                    try {
+                        await supabaseClient
+                            .from('products')
+                            .update({ quantity: finalQty })
+                            .eq('id', id);
+                    } catch (e) {
+                        console.warn('Supabase stock set error:', e);
+                    }
+                }
+                saveProducts(products);
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (!confirm('Are you sure you want to remove this item from the store?')) return;
+            let products = await getProducts();
+            products = products.filter(p => p.id !== id);
+            if (supabaseClient) {
+                try {
+                    await supabaseClient
+                        .from('products')
+                        .delete()
+                        .eq('id', id);
+                } catch(e) {
+                    console.warn('Supabase delete error:', e);
+                }
+            }
+            saveProducts(products);
+        }
+
+        async function resetToDefaults() {
+            if (!confirm('Reset store catalog to the initial sample products? Any custom additions will be lost.')) return;
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('products').upsert(DEFAULT_PRODUCTS, { onConflict: 'id' });
+                } catch(e) {}
+            }
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PRODUCTS));
+            renderInventoryTable();
+        }
+
+        // Add Item Modal & Form handling
+        let currentUploadedImageBase64 = null;
+
+        function openAddItemModal() {
+            const m = document.getElementById('add-item-modal');
+            if (m) {
+                m.classList.remove('hidden');
+                m.style.setProperty('display', 'flex', 'important');
+            }
+        }
+
+        function closeAddItemModal() {
+            const m = document.getElementById('add-item-modal');
+            if (m) {
+                m.classList.add('hidden');
+                m.style.setProperty('display', 'none', 'important');
+            }
+            document.getElementById('add-item-form')?.reset();
+            clearImageSelection();
+        }
+
+        function handleImageFileUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                currentUploadedImageBase64 = evt.target.result;
+                const prev = document.getElementById('image-preview');
+                const prevName = document.getElementById('image-preview-name');
+                const prevWrap = document.getElementById('image-preview-wrapper');
+                if (prev) prev.src = currentUploadedImageBase64;
+                if (prevName) prevName.textContent = file.name;
+                if (prevWrap) prevWrap.classList.remove('hidden');
+                const urlInput = document.getElementById('item-image-url');
+                if (urlInput) urlInput.value = '';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearImageSelection() {
+            currentUploadedImageBase64 = null;
+            const fileInput = document.getElementById('item-image-file');
+            if (fileInput) fileInput.value = '';
+            const prevWrap = document.getElementById('image-preview-wrapper');
+            if (prevWrap) prevWrap.classList.add('hidden');
+            const prev = document.getElementById('image-preview');
+            if (prev) prev.src = '';
+        }
+
+        async function handleCreateItem(e) {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const name = (document.getElementById('item-name')?.value || '').trim();
+            const price = parseFloat(document.getElementById('item-price')?.value) || 0;
+            const quantity = parseInt(document.getElementById('item-quantity')?.value, 10) || 0;
+            const category = document.getElementById('item-category')?.value || 'T-Shirt';
+            const sizes = (document.getElementById('item-sizes')?.value || '').trim() || 'XS, S, M, L, XL, 2XL';
+            const colors = (document.getElementById('item-colors')?.value || '').trim() || 'Black Only';
+            const description = (document.getElementById('item-description')?.value || '').trim() || 'Exclusive Envio item.';
+
+            if (!name || price <= 0) {
+                alert('Please provide a valid item name and positive price.');
+                return;
+            }
+
+            let image = currentUploadedImageBase64 || (document.getElementById('item-image-url')?.value || '').trim();
+            if (!image) {
+                image = 'ads1.png'; // default fallback
+            }
+
+            const newProduct = {
+                id: 'prod_' + Date.now(),
+                name,
+                price,
+                image,
+                category,
+                sizes,
+                colors,
+                description,
+                quantity: Math.max(0, quantity)
+            };
+
+            if (supabaseClient) {
+                try {
+                    await supabaseClient.from('products').insert([newProduct]);
+                } catch(err) {
+                    console.warn('Supabase product insert error:', err);
+                }
+            }
+
+            const products = await getProducts();
+            products.unshift(newProduct);
+            await saveProducts(products);
+
+            closeAddItemModal();
+            alert(`"${name}" was successfully added to your store catalog!`);
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('login-form');
+            if (form) {
+                form.addEventListener('submit', (e) => {
+                    if (e && e.preventDefault) e.preventDefault();
+                    handleAdminLogin(e);
+                    return false;
+                });
+            }
+            checkAdminSession();
+        });
+    </script>
+</body>
+</html>
+
